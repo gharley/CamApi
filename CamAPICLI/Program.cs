@@ -1,20 +1,13 @@
 ﻿using System;
+using CamAPILib;
 
-namespace CamAPIC_
+namespace CamAPICLI
 {
     class Program
     {
         static void Main(string[] args)
         {
             Console.WriteLine("Hello World!");
-        }
-
-        static void consoleLog(string msg){
-            Console.WriteLine(msg);
-        }
-
-        public static void debugLog(string msg){
-
         }
     }
 }

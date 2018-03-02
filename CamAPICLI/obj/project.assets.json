@@ -196,6 +196,28 @@
         "build": {
           "build/netstandard2.0/NETStandard.Library.targets": {}
         }
+      },
+      "Newtonsoft.Json/11.0.1": {
+        "type": "package",
+        "compile": {
+          "lib/netstandard2.0/Newtonsoft.Json.dll": {}
+        },
+        "runtime": {
+          "lib/netstandard2.0/Newtonsoft.Json.dll": {}
+        }
+      },
+      "CamAPILib/1.0.0": {
+        "type": "project",
+        "framework": ".NETStandard,Version=v2.0",
+        "dependencies": {
+          "NewtonSoft.Json": "11.0.1"
+        },
+        "compile": {
+          "bin/placeholder/CamAPILib.dll": {}
+        },
+        "runtime": {
+          "bin/placeholder/CamAPILib.dll": {}
+        }
       }
     }
   },
@@ -656,10 +678,44 @@
         "netstandard.library.2.0.0.nupkg.sha512",
         "netstandard.library.nuspec"
       ]
+    },
+    "Newtonsoft.Json/11.0.1": {
+      "sha512": "pNN4l+J6LlpIvHOeNdXlwxv39NPJ2B5klz+Rd2UQZIx30Squ5oND1Yy3wEAUoKn0GPUj6Yxt9lxlYWQqfZcvKg==",
+      "type": "package",
+      "path": "newtonsoft.json/11.0.1",
+      "files": [
+        "LICENSE.md",
+        "lib/net20/Newtonsoft.Json.dll",
+        "lib/net20/Newtonsoft.Json.xml",
+        "lib/net35/Newtonsoft.Json.dll",
+        "lib/net35/Newtonsoft.Json.xml",
+        "lib/net40/Newtonsoft.Json.dll",
+        "lib/net40/Newtonsoft.Json.xml",
+        "lib/net45/Newtonsoft.Json.dll",
+        "lib/net45/Newtonsoft.Json.xml",
+        "lib/netstandard1.0/Newtonsoft.Json.dll",
+        "lib/netstandard1.0/Newtonsoft.Json.xml",
+        "lib/netstandard1.3/Newtonsoft.Json.dll",
+        "lib/netstandard1.3/Newtonsoft.Json.xml",
+        "lib/netstandard2.0/Newtonsoft.Json.dll",
+        "lib/netstandard2.0/Newtonsoft.Json.xml",
+        "lib/portable-net40+sl5+win8+wp8+wpa81/Newtonsoft.Json.dll",
+        "lib/portable-net40+sl5+win8+wp8+wpa81/Newtonsoft.Json.xml",
+        "lib/portable-net45+win8+wp8+wpa81/Newtonsoft.Json.dll",
+        "lib/portable-net45+win8+wp8+wpa81/Newtonsoft.Json.xml",
+        "newtonsoft.json.11.0.1.nupkg.sha512",
+        "newtonsoft.json.nuspec"
+      ]
+    },
+    "CamAPILib/1.0.0": {
+      "type": "project",
+      "path": "../CamAPILib/CamAPILib.csproj",
+      "msbuildProject": "../CamAPILib/CamAPILib.csproj"
     }
   },
   "projectFileDependencyGroups": {
     ".NETCoreApp,Version=v2.0": [
+      "CamAPILib >= 1.0.0",
       "Microsoft.NETCore.App >= 2.0.0"
     ]
   },
@@ -670,9 +726,9 @@
   "project": {
     "version": "1.0.0",
     "restore": {
-      "projectUniqueName": "C:\\Development\\RidgeRun\\CamAPI\\CamAPICLI\\CamAPIC#.csproj",
-      "projectName": "CamAPIC#",
-      "projectPath": "C:\\Development\\RidgeRun\\CamAPI\\CamAPICLI\\CamAPIC#.csproj",
+      "projectUniqueName": "C:\\Development\\RidgeRun\\CamAPI\\CamAPICLI\\CamAPICLI.csproj",
+      "projectName": "CamAPICLI",
+      "projectPath": "C:\\Development\\RidgeRun\\CamAPI\\CamAPICLI\\CamAPICLI.csproj",
       "packagesPath": "C:\\Users\\gharley\\.nuget\\packages\\",
       "outputPath": "C:\\Development\\RidgeRun\\CamAPI\\CamAPICLI\\obj\\",
       "projectStyle": "PackageReference",
@@ -692,7 +748,11 @@
       },
       "frameworks": {
         "netcoreapp2.0": {
-          "projectReferences": {}
+          "projectReferences": {
+            "C:\\Development\\RidgeRun\\CamAPI\\CamAPILib\\CamAPILib.csproj": {
+              "projectPath": "C:\\Development\\RidgeRun\\CamAPI\\CamAPILib\\CamAPILib.csproj"
+            }
+          }
         }
       },
       "warningProperties": {

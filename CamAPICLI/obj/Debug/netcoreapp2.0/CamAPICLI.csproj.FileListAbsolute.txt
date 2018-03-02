@@ -1,0 +1,12 @@
+C:\Development\RidgeRun\CamAPI\CamAPICLI\bin\Debug\netcoreapp2.0\CamAPICLI.deps.json
+C:\Development\RidgeRun\CamAPI\CamAPICLI\bin\Debug\netcoreapp2.0\CamAPICLI.runtimeconfig.json
+C:\Development\RidgeRun\CamAPI\CamAPICLI\bin\Debug\netcoreapp2.0\CamAPICLI.runtimeconfig.dev.json
+C:\Development\RidgeRun\CamAPI\CamAPICLI\bin\Debug\netcoreapp2.0\CamAPICLI.dll
+C:\Development\RidgeRun\CamAPI\CamAPICLI\bin\Debug\netcoreapp2.0\CamAPICLI.pdb
+C:\Development\RidgeRun\CamAPI\CamAPICLI\obj\Debug\netcoreapp2.0\CamAPICLI.csproj.CoreCompileInputs.cache
+C:\Development\RidgeRun\CamAPI\CamAPICLI\obj\Debug\netcoreapp2.0\CamAPICLI.AssemblyInfoInputs.cache
+C:\Development\RidgeRun\CamAPI\CamAPICLI\obj\Debug\netcoreapp2.0\CamAPICLI.AssemblyInfo.cs
+C:\Development\RidgeRun\CamAPI\CamAPICLI\obj\Debug\netcoreapp2.0\CamAPICLI.dll
+C:\Development\RidgeRun\CamAPI\CamAPICLI\obj\Debug\netcoreapp2.0\CamAPICLI.pdb
+C:\Development\RidgeRun\CamAPI\CamAPICLI\bin\Debug\netcoreapp2.0\CamAPILib.dll
+C:\Development\RidgeRun\CamAPI\CamAPICLI\bin\Debug\netcoreapp2.0\CamAPILib.pdb
