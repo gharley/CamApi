@@ -664,29 +664,31 @@
     ]
   },
   "packageFolders": {
-    "C:\\Users\\gharley.BLISS\\.nuget\\packages\\": {},
+    "C:\\Users\\gharley\\.nuget\\packages\\": {},
     "C:\\Program Files\\dotnet\\sdk\\NuGetFallbackFolder": {}
   },
   "project": {
     "version": "1.0.0",
     "restore": {
-      "projectUniqueName": "D:\\Development\\RidgeRun\\CamAPIC#\\CamAPIC#.csproj",
+      "projectUniqueName": "C:\\Development\\RidgeRun\\CamAPI\\CamAPICLI\\CamAPIC#.csproj",
       "projectName": "CamAPIC#",
-      "projectPath": "D:\\Development\\RidgeRun\\CamAPIC#\\CamAPIC#.csproj",
-      "packagesPath": "C:\\Users\\gharley.BLISS\\.nuget\\packages\\",
-      "outputPath": "D:\\Development\\RidgeRun\\CamAPIC#\\obj\\",
+      "projectPath": "C:\\Development\\RidgeRun\\CamAPI\\CamAPICLI\\CamAPIC#.csproj",
+      "packagesPath": "C:\\Users\\gharley\\.nuget\\packages\\",
+      "outputPath": "C:\\Development\\RidgeRun\\CamAPI\\CamAPICLI\\obj\\",
       "projectStyle": "PackageReference",
       "fallbackFolders": [
         "C:\\Program Files\\dotnet\\sdk\\NuGetFallbackFolder"
       ],
       "configFilePaths": [
-        "C:\\Users\\gharley.BLISS\\AppData\\Roaming\\NuGet\\NuGet.Config"
+        "C:\\Users\\gharley\\AppData\\Roaming\\NuGet\\NuGet.Config",
+        "C:\\Program Files (x86)\\NuGet\\Config\\Microsoft.VisualStudio.Offline.config"
       ],
       "originalTargetFrameworks": [
         "netcoreapp2.0"
       ],
       "sources": {
-        "https://www.nuget.org/api/v2/": {}
+        "C:\\Program Files (x86)\\Microsoft SDKs\\NuGetPackages\\": {},
+        "https://api.nuget.org/v3/index.json": {}
       },
       "frameworks": {
         "netcoreapp2.0": {

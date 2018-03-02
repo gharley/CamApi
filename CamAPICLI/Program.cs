@@ -10,7 +10,7 @@ namespace CamAPIC_
         }
 
         static void consoleLog(string msg){
-
+            Console.WriteLine(msg);
         }
 
         public static void debugLog(string msg){
