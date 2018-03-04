@@ -1,8 +1,0 @@
-D:\Development\RidgeRun\CamAPI\CamAPI\bin\Debug\netstandard2.0\CamAPI.deps.json
-D:\Development\RidgeRun\CamAPI\CamAPI\bin\Debug\netstandard2.0\CamAPI.dll
-D:\Development\RidgeRun\CamAPI\CamAPI\bin\Debug\netstandard2.0\CamAPI.pdb
-D:\Development\RidgeRun\CamAPI\CamAPI\obj\Debug\netstandard2.0\CamAPI.csproj.CoreCompileInputs.cache
-D:\Development\RidgeRun\CamAPI\CamAPI\obj\Debug\netstandard2.0\CamAPI.AssemblyInfoInputs.cache
-D:\Development\RidgeRun\CamAPI\CamAPI\obj\Debug\netstandard2.0\CamAPI.AssemblyInfo.cs
-D:\Development\RidgeRun\CamAPI\CamAPI\obj\Debug\netstandard2.0\CamAPI.dll
-D:\Development\RidgeRun\CamAPI\CamAPI\obj\Debug\netstandard2.0\CamAPI.pdb
