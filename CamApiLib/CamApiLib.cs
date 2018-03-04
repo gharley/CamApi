@@ -5,9 +5,9 @@ using System.Net;
 
 using Newtonsoft.Json;
 
-namespace CamAPILib
+namespace CamApi
 {
-  public class CamAPI
+  public class CamApiLib
 
   {
     private static Dictionary<string, string> lookup = new Dictionary<string, string>(){
@@ -68,7 +68,7 @@ namespace CamAPILib
 
     private string camAddr = null;
 
-    public CamAPI(string address)
+    public CamApiLib(string address)
     {
       camAddr = address;
 

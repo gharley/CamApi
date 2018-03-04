@@ -3,9 +3,9 @@ Microsoft Visual Studio Solution File, Format Version 12.00
 # Visual Studio 15
 VisualStudioVersion = 15.0.26124.0
 MinimumVisualStudioVersion = 15.0.26124.0
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "CamAPICLI", "CamAPICLI\CamAPICLI.csproj", "{FBBADFC3-BD11-4409-A04D-170E11C55E56}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "CamApiCli", "CamApiCli\CamApiCli.csproj", "{FBBADFC3-BD11-4409-A04D-170E11C55E56}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "CamAPILib", "CamAPILib\CamAPILib.csproj", "{FA2860BC-1BEC-4992-8DCF-7A9194124210}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "CamApiLib", "CamApiLib\CamApiLib.csproj", "{FA2860BC-1BEC-4992-8DCF-7A9194124210}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -19,7 +19,7 @@ Global
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
 	EndGlobalSection
-	GlobalSection(ProjectConfigurationPlatforms) = postSolution
+	GlobalSection(ProjectConfigurationPlatforms) = postSolutioncd ..
 		{FBBADFC3-BD11-4409-A04D-170E11C55E56}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
 		{FBBADFC3-BD11-4409-A04D-170E11C55E56}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{FBBADFC3-BD11-4409-A04D-170E11C55E56}.Debug|x64.ActiveCfg = Debug|x64

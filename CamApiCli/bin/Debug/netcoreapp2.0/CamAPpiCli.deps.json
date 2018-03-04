@@ -6,12 +6,12 @@
   "compilationOptions": {},
   "targets": {
     ".NETCoreApp,Version=v2.0": {
-      "CamApiCli/1.0.0": {
+      "CamAPpiCli/1.0.0": {
         "dependencies": {
-          "CamApiLib": "1.0.0"
+          "CamAPILib": "1.0.0"
         },
         "runtime": {
-          "CamApiCli.dll": {}
+          "CamAPpiCli.dll": {}
         }
       },
       "Newtonsoft.Json/11.0.1": {
@@ -19,18 +19,18 @@
           "lib/netstandard2.0/Newtonsoft.Json.dll": {}
         }
       },
-      "CamApiLib/1.0.0": {
+      "CamAPILib/1.0.0": {
         "dependencies": {
           "Newtonsoft.Json": "11.0.1"
         },
         "runtime": {
-          "CamApiLib.dll": {}
+          "CamAPILib.dll": {}
         }
       }
     }
   },
   "libraries": {
-    "CamApiCli/1.0.0": {
+    "CamAPpiCli/1.0.0": {
       "type": "project",
       "serviceable": false,
       "sha512": ""
@@ -42,7 +42,7 @@
       "path": "newtonsoft.json/11.0.1",
       "hashPath": "newtonsoft.json.11.0.1.nupkg.sha512"
     },
-    "CamApiLib/1.0.0": {
+    "CamAPILib/1.0.0": {
       "type": "project",
       "serviceable": false,
       "sha512": ""

@@ -206,17 +206,17 @@
           "lib/netstandard2.0/Newtonsoft.Json.dll": {}
         }
       },
-      "CamAPILib/1.0.0": {
+      "CamApiLib/1.0.0": {
         "type": "project",
         "framework": ".NETStandard,Version=v2.0",
         "dependencies": {
           "NewtonSoft.Json": "11.0.1"
         },
         "compile": {
-          "bin/placeholder/CamAPILib.dll": {}
+          "bin/placeholder/CamApiLib.dll": {}
         },
         "runtime": {
-          "bin/placeholder/CamAPILib.dll": {}
+          "bin/placeholder/CamApiLib.dll": {}
         }
       }
     }
@@ -707,15 +707,15 @@
         "newtonsoft.json.nuspec"
       ]
     },
-    "CamAPILib/1.0.0": {
+    "CamApiLib/1.0.0": {
       "type": "project",
-      "path": "../CamAPILib/CamAPILib.csproj",
-      "msbuildProject": "../CamAPILib/CamAPILib.csproj"
+      "path": "../CamApiLib/CamApiLib.csproj",
+      "msbuildProject": "../CamApiLib/CamApiLib.csproj"
     }
   },
   "projectFileDependencyGroups": {
     ".NETCoreApp,Version=v2.0": [
-      "CamAPILib >= 1.0.0",
+      "CamApiLib >= 1.0.0",
       "Microsoft.NETCore.App >= 2.0.0"
     ]
   },
@@ -726,11 +726,11 @@
   "project": {
     "version": "1.0.0",
     "restore": {
-      "projectUniqueName": "D:\\Development\\RidgeRun\\CamAPI\\CamAPICLI\\CamAPICLI.csproj",
-      "projectName": "CamAPICLI",
-      "projectPath": "D:\\Development\\RidgeRun\\CamAPI\\CamAPICLI\\CamAPICLI.csproj",
+      "projectUniqueName": "D:\\Development\\RidgeRun\\CamApi\\CamApiCli\\CamApiCli.csproj",
+      "projectName": "CamApiCli",
+      "projectPath": "D:\\Development\\RidgeRun\\CamApi\\CamApiCli\\CamApiCli.csproj",
       "packagesPath": "C:\\Users\\gharley.BLISS\\.nuget\\packages\\",
-      "outputPath": "D:\\Development\\RidgeRun\\CamAPI\\CamAPICLI\\obj\\",
+      "outputPath": "D:\\Development\\RidgeRun\\CamApi\\CamApiCli\\obj\\",
       "projectStyle": "PackageReference",
       "fallbackFolders": [
         "C:\\Program Files\\dotnet\\sdk\\NuGetFallbackFolder"
@@ -747,8 +747,8 @@
       "frameworks": {
         "netcoreapp2.0": {
           "projectReferences": {
-            "D:\\Development\\RidgeRun\\CamAPI\\CamAPILib\\CamAPILib.csproj": {
-              "projectPath": "D:\\Development\\RidgeRun\\CamAPI\\CamAPILib\\CamAPILib.csproj"
+            "D:\\Development\\RidgeRun\\CamApi\\CamApiLib\\CamApiLib.csproj": {
+              "projectPath": "D:\\Development\\RidgeRun\\CamApi\\CamApiLib\\CamApiLib.csproj"
             }
           }
         }

@@ -7,13 +7,13 @@
   "targets": {
     ".NETStandard,Version=v2.0": {},
     ".NETStandard,Version=v2.0/": {
-      "CamApiLib/1.0.0": {
+      "CamAPI/1.0.0": {
         "dependencies": {
           "NETStandard.Library": "2.0.1",
           "Newtonsoft.Json": "11.0.1"
         },
         "runtime": {
-          "CamApiLib.dll": {}
+          "CamAPI.dll": {}
         }
       },
       "Microsoft.NETCore.Platforms/1.1.0": {},
@@ -30,7 +30,7 @@
     }
   },
   "libraries": {
-    "CamApiLib/1.0.0": {
+    "CamAPI/1.0.0": {
       "type": "project",
       "serviceable": false,
       "sha512": ""

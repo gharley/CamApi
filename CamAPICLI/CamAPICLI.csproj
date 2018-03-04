@@ -1,7 +1,7 @@
 <Project Sdk="Microsoft.NET.Sdk">
 
   <ItemGroup>
-    <ProjectReference Include="..\CamAPILib\CamAPILib.csproj" />
+    <ProjectReference Include="..\CamApiLib\CamApiLib.csproj" />
   </ItemGroup>
 
   <PropertyGroup>

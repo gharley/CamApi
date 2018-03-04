@@ -7,10 +7,10 @@
 using System;
 using System.Reflection;
 
-[assembly: System.Reflection.AssemblyCompanyAttribute("CamAPILib")]
+[assembly: System.Reflection.AssemblyCompanyAttribute("CamApiLib")]
 [assembly: System.Reflection.AssemblyConfigurationAttribute("Debug")]
 [assembly: System.Reflection.AssemblyFileVersionAttribute("1.0.0.0")]
 [assembly: System.Reflection.AssemblyInformationalVersionAttribute("1.0.0")]
-[assembly: System.Reflection.AssemblyProductAttribute("CamAPILib")]
-[assembly: System.Reflection.AssemblyTitleAttribute("CamAPILib")]
+[assembly: System.Reflection.AssemblyProductAttribute("CamApiLib")]
+[assembly: System.Reflection.AssemblyTitleAttribute("CamApiLib")]
 [assembly: System.Reflection.AssemblyVersionAttribute("1.0.0.0")]
