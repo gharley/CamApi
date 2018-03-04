@@ -39,7 +39,7 @@
   },
   "libraries": {
     "Microsoft.NETCore.Platforms/1.1.0": {
-      "sha512": "q+O8CZtgS6FhLketX7UlYF3UnZ5qjBItWvlymWwXxl7WvCD4KTs42vqs/pOAMnvumnuMrD66Bg5hsD/JRmN+5A==",
+      "sha512": "kz0PEW2lhqygehI/d6XsPCQzD7ff7gUJaVGPVETX611eadGsA3A877GdSlU0LRVMCTH/+P3o2iDTak+S08V2+A==",
       "type": "package",
       "path": "microsoft.netcore.platforms/1.1.0",
       "files": [
@@ -215,31 +215,29 @@
     ]
   },
   "packageFolders": {
-    "C:\\Users\\gharley\\.nuget\\packages\\": {},
+    "C:\\Users\\gharley.BLISS\\.nuget\\packages\\": {},
     "C:\\Program Files\\dotnet\\sdk\\NuGetFallbackFolder": {}
   },
   "project": {
     "version": "1.0.0",
     "restore": {
-      "projectUniqueName": "C:\\Development\\RidgeRun\\CamAPI\\CamAPILib\\CamAPILib.csproj",
+      "projectUniqueName": "D:\\Development\\RidgeRun\\CamAPI\\CamAPILib\\CamAPILib.csproj",
       "projectName": "CamAPILib",
-      "projectPath": "C:\\Development\\RidgeRun\\CamAPI\\CamAPILib\\CamAPILib.csproj",
-      "packagesPath": "C:\\Users\\gharley\\.nuget\\packages\\",
-      "outputPath": "C:\\Development\\RidgeRun\\CamAPI\\CamAPILib\\obj\\",
+      "projectPath": "D:\\Development\\RidgeRun\\CamAPI\\CamAPILib\\CamAPILib.csproj",
+      "packagesPath": "C:\\Users\\gharley.BLISS\\.nuget\\packages\\",
+      "outputPath": "D:\\Development\\RidgeRun\\CamAPI\\CamAPILib\\obj\\",
       "projectStyle": "PackageReference",
       "fallbackFolders": [
         "C:\\Program Files\\dotnet\\sdk\\NuGetFallbackFolder"
       ],
       "configFilePaths": [
-        "C:\\Users\\gharley\\AppData\\Roaming\\NuGet\\NuGet.Config",
-        "C:\\Program Files (x86)\\NuGet\\Config\\Microsoft.VisualStudio.Offline.config"
+        "C:\\Users\\gharley.BLISS\\AppData\\Roaming\\NuGet\\NuGet.Config"
       ],
       "originalTargetFrameworks": [
         "netstandard2.0"
       ],
       "sources": {
-        "C:\\Program Files (x86)\\Microsoft SDKs\\NuGetPackages\\": {},
-        "https://api.nuget.org/v3/index.json": {}
+        "https://www.nuget.org/api/v2/": {}
       },
       "frameworks": {
         "netstandard2.0": {

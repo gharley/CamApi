@@ -7,10 +7,10 @@ using Newtonsoft.Json;
 
 namespace CamAPILib
 {
-    public class CamAPI
+  public class CamAPI
 
-    {
-        private static Dictionary<string, string> lookup = new Dictionary<string, string>(){
+  {
+    private static Dictionary<string, string> lookup = new Dictionary<string, string>(){
         {"Camera time:", "camera_time"},
         {"Model:", "model_string"},
         {"Sensitivity:", "iso"},
@@ -66,76 +66,91 @@ namespace CamAPILib
         {"Software version:", "software_version"},
         };
 
-        private string camAddr = null;
+    private string camAddr = null;
 
-        public CamAPI(string address)
-        {
-            camAddr = address;
+    public CamAPI(string address)
+    {
+      camAddr = address;
 
-            Console.WriteLine(string.Format("CAMAPI HTTP initialized.  Talking to camera: {0}", this.camAddr));
-        }
-
-        // Returns data fetched from the target URL or None if HTTP returns an error trying to fetch the URL
-        private string fetchTarget(string target)
-        {
-            string result = null;
-            string url = "http://" + this.camAddr + target;
-
-            try
-            {
-                Console.WriteLine(string.Format("    Fetching: {0}", url));
-
-                WebRequest request = WebRequest.Create(url);
-                WebResponse response = request.GetResponse();
-                var reader = new StreamReader(response.GetResponseStream());
-
-                result = reader.ReadToEnd();
-            }
-            catch (Exception ex)
-            {
-                Console.WriteLine("ERROR: unable to fetch: " + url);
-                Console.WriteLine(ex.Message);
-            }
-
-            return result;
-        }
-
-        // Accepts dictionary to be posted to uri.
-        private string postTarget(string target, IDictionary<string, object> data)
-        {
-            string result = null;
-            string url = "http://" + this.camAddr + target;
-
-            try
-            {
-                Console.WriteLine(string.Format("    Posting: {0}", url));
-
-                WebRequest request = WebRequest.Create(url);
-                string jsonData = JsonConvert.SerializeObject(data);
-
-                request.Method = "POST";
-                request.ContentType = "application/json";
-
-                using (var writer = new StreamWriter(request.GetRequestStream()))
-                {
-                    writer.Write(jsonData);
-                    writer.Flush();
-                    writer.Close();
-                }
-
-                var response = request.GetResponse();
-                var reader = new StreamReader(response.GetResponseStream());
-
-                result = reader.ReadToEnd();
-                Console.WriteLine(string.Format("    Response: {0}", result));
-            }
-            catch (Exception ex)
-            {
-                Console.WriteLine("ERROR: unable to post: " + url);
-                Console.WriteLine(ex.Message);
-            }
-
-            return result;
-        }
+      Console.WriteLine(string.Format("CAMAPI HTTP initialized.  Talking to camera: {0}", this.camAddr));
     }
+
+    // Returns data fetched from the target URL or None if HTTP returns an error trying to fetch the URL
+    private string FetchTarget(string target)
+    {
+      string result = null;
+      string url = "http://" + this.camAddr + target;
+
+      try
+      {
+        Console.WriteLine(string.Format("    Fetching: {0}", url));
+
+        WebRequest request = WebRequest.Create(url);
+        WebResponse response = request.GetResponse();
+        var reader = new StreamReader(response.GetResponseStream());
+
+        result = reader.ReadToEnd();
+      }
+      catch (Exception ex)
+      {
+        Console.WriteLine("ERROR: unable to fetch: " + url);
+        Console.WriteLine(ex.Message);
+      }
+
+      return result;
+    }
+
+    // Accepts dictionary to be posted to uri.
+    private string PostTarget(string target, IDictionary<string, object> data)
+    {
+      string result = null;
+      string url = "http://" + this.camAddr + target;
+
+      try
+      {
+        Console.WriteLine(string.Format("    Posting: {0}", url));
+
+        WebRequest request = WebRequest.Create(url);
+        string jsonData = JsonConvert.SerializeObject(data);
+
+        request.Method = "POST";
+        request.ContentType = "application/json";
+
+        using (var writer = new StreamWriter(request.GetRequestStream()))
+        {
+          writer.Write(jsonData);
+          writer.Flush();
+          writer.Close();
+        }
+
+        var response = request.GetResponse();
+        var reader = new StreamReader(response.GetResponseStream());
+
+        result = reader.ReadToEnd();
+        Console.WriteLine(string.Format("    Response: {0}", result));
+      }
+      catch (Exception ex)
+      {
+        Console.WriteLine("ERROR: unable to post: " + url);
+        Console.WriteLine(ex.Message);
+      }
+
+      return result;
+    }
+    public IDictionary<string, object> GetCamStatus()
+    {
+      // Returns camera status dictionary.
+      string jdata = FetchTarget("/get_camstatus");
+
+      return (IDictionary<string, object>)JsonConvert.DeserializeObject(jdata, typeof(IDictionary<string, object>));
+    }
+
+    public int GetPretriggerFillLevel()
+    {
+      // Returns accurate value of the actual pretrigger buffer fill level.
+      string jdata = FetchTarget("/pretrigger_buffer_fill_level");
+
+      return (int)JsonConvert.DeserializeObject(jdata);
+    }
+  }
 }

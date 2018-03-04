@@ -7,7 +7,7 @@
             "type": "process",
             "args": [
                 "build",
-                "${workspaceFolder}/CamAPIC#.csproj"
+                "${workspaceFolder}/CamAPICLI.csproj"
             ],
             "problemMatcher": "$msCompile"
         }
