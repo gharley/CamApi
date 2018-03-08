@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
 using System.IO;
+using System.Linq;
 using System.Net;
 
 using Newtonsoft.Json;
@@ -8,34 +9,7 @@ using Newtonsoft.Json;
 namespace CamApi
 {
     public class CamApiLib
-
     {
-
-        public enum CAMERA_STATE
-        {
-            CAMAPI_STATE_UNCONFIGURED = 1, CAMAPI_STATE_CALIBRATING, CAMAPI_STATE_RUNNING, CAMAPI_STATE_TRIGGERED, CAMAPI_STATE_SAVING,
-            CAMAPI_STATE_RUNNING_PRETRIGGER_FULL, CAMAPI_STATE_TRIGGER_CANCELED, CAMAPI_STATE_SAVE_CANCELED, CAMAPI_STATE_SAVE_INTERRUPTED,
-            CAMAPI_STATE_SAVE_TRUNCATING, CAMAPI_STATE_REVIEWING, CAMAPI_STATE_SELECTIVE_SAVING
-        };
-
-        public enum CAMAPI_FLAG
-        {
-            STORAGE_FULL = 0x000001,
-            STORAGE_MISSING_OR_UNMOUNTED = 0x000002,
-            USB_STORAGE_INSTALLED = 0x000004,
-            SD_CARD_STORAGE_INSTALLED = 0x000008,
-            USB_STORAGE_FULL = 0x000010,
-            SD_CARD_STORAGE_FULL = 0x000020,
-            STORAGE_BAD = 0x000040,
-            NET_CONFIGURED = 0x000080,
-            NET_NOT_MOUNTABLE = 0x000100,
-            NET_FULL = 0x000200,
-            USB_STORAGE_UNMOUNTED = 0x000400,
-            SD_CARD_STORAGE_UNMOUNTED = 0x008000,
-            GENLOCK_NO_SIGNAL = 0x400000,
-            GENLOCK_CONFIG_ERROR = 0x800000
-        }
-
         private static Dictionary<string, string> lookup = new Dictionary<string, string>(){
         {"Camera time:", "camera_time"},
         {"Model:", "model_string"},
@@ -208,40 +182,40 @@ namespace CamApi
 
             switch (state)
             {
-                case CAMERA_STATE.CAMAPI_STATE_UNCONFIGURED:
+                case CAMERA_STATE.UNCONFIGURED:
                     result = "Unconfigured";
                     break;
-                case CAMERA_STATE.CAMAPI_STATE_CALIBRATING:
+                case CAMERA_STATE.CALIBRATING:
                     result = "Calibrating";
                     break;
-                case CAMERA_STATE.CAMAPI_STATE_RUNNING:
+                case CAMERA_STATE.RUNNING:
                     result = "Running";
                     break;
-                case CAMERA_STATE.CAMAPI_STATE_RUNNING_PRETRIGGER_FULL:
+                case CAMERA_STATE.RUNNING_PRETRIGGER_FULL:
                     result = "Running pretrigger buffer full";
                     break;
-                case CAMERA_STATE.CAMAPI_STATE_TRIGGERED:
+                case CAMERA_STATE.TRIGGERED:
                     result = "Triggered";
                     break;
-                case CAMERA_STATE.CAMAPI_STATE_SAVING:
+                case CAMERA_STATE.SAVING:
                     result = "Saving";
                     break;
-                case CAMERA_STATE.CAMAPI_STATE_TRIGGER_CANCELED:
+                case CAMERA_STATE.TRIGGER_CANCELED:
                     result = "Trigger canceled";
                     break;
-                case CAMERA_STATE.CAMAPI_STATE_SAVE_CANCELED:
+                case CAMERA_STATE.SAVE_CANCELED:
                     result = "Save canceled";
                     break;
-                case CAMERA_STATE.CAMAPI_STATE_SAVE_INTERRUPTED:
+                case CAMERA_STATE.SAVE_INTERRUPTED:
                     result = "Save interrupted";
                     break;
-                case CAMERA_STATE.CAMAPI_STATE_SAVE_TRUNCATING:
+                case CAMERA_STATE.SAVE_TRUNCATING:
                     result = "Save truncating";
                     break;
-                case CAMERA_STATE.CAMAPI_STATE_REVIEWING:
+                case CAMERA_STATE.REVIEWING:
                     result = "Reviewing";
                     break;
-                case CAMERA_STATE.CAMAPI_STATE_SELECTIVE_SAVING:
+                case CAMERA_STATE.SELECTIVE_SAVING:
                     result = "Selective saving";
                     break;
                 default:
@@ -302,13 +276,13 @@ namespace CamApi
 
                     switch (state)
                     {
-                        case CAMERA_STATE.CAMAPI_STATE_SAVING:
+                        case CAMERA_STATE.SAVING:
                             result += $"; Saving multishot: {activeBuffer}/{capturedBuffers}";
                             break;
-                        case CAMERA_STATE.CAMAPI_STATE_SELECTIVE_SAVING:
+                        case CAMERA_STATE.SELECTIVE_SAVING:
                             result += $"; Selective saving multishot: {activeBuffer}/{capturedBuffers}";
                             break;
-                        case CAMERA_STATE.CAMAPI_STATE_REVIEWING:
+                        case CAMERA_STATE.REVIEWING:
                             result += $"; Reviewing multishot: {activeBuffer}";
                             break;
                         default:
@@ -319,7 +293,7 @@ namespace CamApi
                 {
                     var activeSettings = GetCurrentSettings();
 
-                    if (state == CAMERA_STATE.CAMAPI_STATE_TRIGGERED)
+                    if (state == CAMERA_STATE.TRIGGERED)
                     {
                         result += $"; Capturing multishot: {activeBuffer}/{activeSettings["multishot_count"]}";
                     }
@@ -349,6 +323,21 @@ namespace CamApi
             return (int)JsonConvert.DeserializeObject(jdata);
         }
 
+        public IDictionary<string, object> GetSavedSettins(string id = null)
+        {
+            // Returns a dictonary containing information about the storage device , or about active storage device if device is not set
+            string url = "/get_saved_settings";
+
+            if (!string.IsNullOrEmpty(id))
+            {
+                url += "?id=" + id;
+            }
+
+            string jdata = FetchTarget(url);
+
+            return (IDictionary<string, object>)JsonConvert.DeserializeObject(jdata, typeof(IDictionary<string, object>));
+        }
+
         public string GetStorageDir()
         {
             // Returns path to mount point of the active storage device or None if there is no storage device available.
@@ -362,13 +351,82 @@ namespace CamApi
             // Returns a dictonary containing information about the storage device , or about active storage device if device is not set
             string url = "/get_storage_info";
 
-            if(!string.IsNullOrEmpty(device)){
-              url += "?device=" + device;
+            if (!string.IsNullOrEmpty(device))
+            {
+                url += "?device=" + device;
             }
 
             string jdata = FetchTarget(url);
 
             return (IDictionary<string, object>)JsonConvert.DeserializeObject(jdata, typeof(IDictionary<string, object>));
+        }
+
+        public IDictionary<string, object> GetCamInfo()
+        {
+            // Returns a dictionary of all the unchanging camera information.
+            string jdata = FetchTarget("/get_caminfo");
+
+            return (IDictionary<string, object>)JsonConvert.DeserializeObject(jdata, typeof(IDictionary<string, object>));
+        }
+
+        private static Dictionary<string, string> infoLookup = new Dictionary<string, string>(){
+          {"sw_build_date", "Software build date"},
+          {"build_date", "Hardware build date"},
+          {"fpga_version", "FPGA version"},
+          {"model_number", "Model Number"},
+          {"serial_number", "Serial Number"},
+          {"hardware_revision", "Hardware Revision"},
+          {"hardware_configuration", "Hardware Configuration"}
+        };
+
+        public string GetInfoString(string prefix)
+        {
+            // Returns human readable text describing the camera.  Text format will change in the future.
+            var info = GetCamInfo();
+            string result = string.Join(prefix, from kv in infoLookup
+                                                where info.ContainsKey(kv.Key)
+                                                select $"{kv.Value}: {info[kv.Key]}\n");
+
+            if (info.ContainsKey("ir_filter"))
+                result += prefix + $"IR Filter: {((long)info["ir_filter"] != 0 ? "" : "not ")} installed\n";
+
+            result += $"{prefix}Ethernet MAC Address: {info["mac_addr"]}\n";
+
+            return result;
+
+        }
+
+        private void PrintSettingLine(string label, object value){
+            Console.Write(label + ": ");
+            if(value == null) Console.WriteLine("None");
+            else Console.WriteLine($"{value}");
+        }
+
+        public void PrintSettings(IDictionary<string, object> settings, string keyPrefix, string prefix){
+          PrintSettingLine(prefix + "Sensitivity", settings[keyPrefix + "iso"]);
+
+          var exposure = (double)settings[keyPrefix + "exposure"];
+          if(exposure == 0) Console.WriteLine($"{prefix}Shutter: None");
+          else Console.WriteLine($"{prefix}Shutter: {1/exposure:0.00}");
+          
+          PrintSettingLine(prefix + "Frame Rate", settings[keyPrefix + "frame_rate"]);
+          PrintSettingLine(prefix + "Horizontal", settings[keyPrefix + "horizontal"]);
+          PrintSettingLine(prefix + "Vertical", settings[keyPrefix + "vertical"]);
+
+          Console.Write($"{prefix}Sub-sampling: ");
+          Console.WriteLine((!settings.ContainsKey(keyPrefix + "subsample") || (long)settings[keyPrefix + "subsample"] == 0) ? "Off" : "On");
+          
+          PrintSettingLine(prefix + "Duration", settings[keyPrefix + "duration"]);
+          PrintSettingLine(prefix + "Pre-trigger", settings[keyPrefix + "pretrigger"]);
+/*    def print_settings(self, s, dict_key_leader, tab):
+        subsample = s.get(dict_key_leader + 'subsample')
+        if subsample == None or subsample == 0:
+            print tab + "Sub-sampling: Off"
+        else:
+            print tab + "Sub-sampling: On"
+        self._print_setting_line(tab + "Duration", s.get(dict_key_leader + 'duration'))
+        self._print_setting_line(tab + "Pre-trigger", s.get(dict_key_leader + 'pretrigger'))
+*/          
         }
     }
 }

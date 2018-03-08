@@ -40,6 +40,13 @@ namespace CamApiCli
                 var storageInfo = api.GetStorageInfo();
                 Console.WriteLine($"Storage information: {storageInfo["available_space"]} / " + 
                     $"{storageInfo["storage_size"]} bytes, mount point: {storageInfo["mount_point"]}");
+
+                Console.WriteLine("Camera information:");
+                Console.Write(api.GetInfoString("    "));
+
+                var settings = api.GetSavedSettins();
+                Console.WriteLine("Saved camera settings:");
+                api.PrintSettings(settings, "requested_", "    ");
             }
             catch (Exception ex)
             {
