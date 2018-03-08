@@ -103,7 +103,7 @@ namespace CamApi
         }
 
         // Accepts dictionary to be posted to uri.
-        private string PostTarget(string target, IDictionary<string, object> data)
+        private string PostTarget(string target, Dictionary<string, object> data)
         {
             string result = null;
             string url = "http://" + this.camAddr + target;
@@ -238,22 +238,22 @@ namespace CamApi
             return string.Format("{0:0.0} TB", num);
         }
 
-        public IDictionary<string, object> GetCamStatus()
+        public Dictionary<string, object> GetCamStatus()
         {
             // Returns camera status dictionary.
             string jdata = FetchTarget("/get_camstatus");
 
-            return (IDictionary<string, object>)JsonConvert.DeserializeObject(jdata, typeof(IDictionary<string, object>));
+            return (Dictionary<string, object>)JsonConvert.DeserializeObject(jdata, typeof(Dictionary<string, object>));
         }
 
-        public IDictionary<string, object> GetCurrentSettings()
+        public Dictionary<string, object> GetCurrentSettings()
         {
             // Returns dictionary containing the current requested camera settings that are being used if camera is active,
             // otherwise None. Dictionary may contain other values - do not count on them being present in future versions of CAMAPI.
             // Defined camera settings documented at http://wiki.edgertronic.com/index.php/Software_developers_kit
             string jdata = FetchTarget("/get_current_settings");
 
-            return (IDictionary<string, object>)JsonConvert.DeserializeObject(jdata, typeof(IDictionary<string, object>));
+            return (Dictionary<string, object>)JsonConvert.DeserializeObject(jdata, typeof(Dictionary<string, object>));
         }
 
         public string GetStatusString()
@@ -323,9 +323,22 @@ namespace CamApi
             return (int)JsonConvert.DeserializeObject(jdata);
         }
 
-        public IDictionary<string, object> GetSavedSettins(string id = null)
+        public Dictionary<string, object> GetCurrentSettins()
         {
-            // Returns a dictonary containing information about the storage device , or about active storage device if device is not set
+            // Returns dictionary containing the current requested camera settings that are being used if camera is active,
+            // otherwise None. Dictionary may contain other values - do not count on them being present in future versions of CAMAPI.
+            // Defined camera settings documented at http://wiki.edgertronic.com/index.php/Software_developers_kit
+            string jdata = FetchTarget("/get_current_settings");
+
+            return (Dictionary<string, object>)JsonConvert.DeserializeObject(jdata, typeof(Dictionary<string, object>));
+        }
+
+        public Dictionary<string, object> GetSavedSettins(string id = null)
+        {
+            // Returns dictionary containing last successfully saved settings or
+            // default camera settings otherwise.  If id is specified, returns the
+            // camera settings for that identifier, or an empty dictionary if the
+            // settings for the specified identifier do not exist.
             string url = "/get_saved_settings";
 
             if (!string.IsNullOrEmpty(id))
@@ -335,7 +348,7 @@ namespace CamApi
 
             string jdata = FetchTarget(url);
 
-            return (IDictionary<string, object>)JsonConvert.DeserializeObject(jdata, typeof(IDictionary<string, object>));
+            return (Dictionary<string, object>)JsonConvert.DeserializeObject(jdata, typeof(Dictionary<string, object>));
         }
 
         public string GetStorageDir()
@@ -346,7 +359,7 @@ namespace CamApi
             return (string)JsonConvert.DeserializeObject(jdata);
         }
 
-        public IDictionary<string, object> GetStorageInfo(string device = null)
+        public Dictionary<string, object> GetStorageInfo(string device = null)
         {
             // Returns a dictonary containing information about the storage device , or about active storage device if device is not set
             string url = "/get_storage_info";
@@ -358,15 +371,15 @@ namespace CamApi
 
             string jdata = FetchTarget(url);
 
-            return (IDictionary<string, object>)JsonConvert.DeserializeObject(jdata, typeof(IDictionary<string, object>));
+            return (Dictionary<string, object>)JsonConvert.DeserializeObject(jdata, typeof(Dictionary<string, object>));
         }
 
-        public IDictionary<string, object> GetCamInfo()
+        public Dictionary<string, object> GetCamInfo()
         {
             // Returns a dictionary of all the unchanging camera information.
             string jdata = FetchTarget("/get_caminfo");
 
-            return (IDictionary<string, object>)JsonConvert.DeserializeObject(jdata, typeof(IDictionary<string, object>));
+            return (Dictionary<string, object>)JsonConvert.DeserializeObject(jdata, typeof(Dictionary<string, object>));
         }
 
         private static Dictionary<string, string> infoLookup = new Dictionary<string, string>(){
@@ -396,37 +409,92 @@ namespace CamApi
 
         }
 
-        private void PrintSettingLine(string label, object value){
+        private void PrintSettingLine(string label, object value)
+        {
             Console.Write(label + ": ");
-            if(value == null) Console.WriteLine("None");
+            if (value == null) Console.WriteLine("None");
             else Console.WriteLine($"{value}");
         }
 
-        public void PrintSettings(IDictionary<string, object> settings, string keyPrefix, string prefix){
-          PrintSettingLine(prefix + "Sensitivity", settings[keyPrefix + "iso"]);
+        public void PrintSettings(Dictionary<string, object> settings, string keyPrefix, string prefix)
+        {
+            PrintSettingLine(prefix + "Sensitivity", settings[keyPrefix + "iso"]);
 
-          var exposure = (double)settings[keyPrefix + "exposure"];
-          if(exposure == 0) Console.WriteLine($"{prefix}Shutter: None");
-          else Console.WriteLine($"{prefix}Shutter: {1/exposure:0.00}");
-          
-          PrintSettingLine(prefix + "Frame Rate", settings[keyPrefix + "frame_rate"]);
-          PrintSettingLine(prefix + "Horizontal", settings[keyPrefix + "horizontal"]);
-          PrintSettingLine(prefix + "Vertical", settings[keyPrefix + "vertical"]);
+            var exposure = (double)settings[keyPrefix + "exposure"];
+            if (exposure == 0) Console.WriteLine($"{prefix}Shutter: None");
+            else Console.WriteLine($"{prefix}Shutter: {1 / exposure:0.00}");
 
-          Console.Write($"{prefix}Sub-sampling: ");
-          Console.WriteLine((!settings.ContainsKey(keyPrefix + "subsample") || (long)settings[keyPrefix + "subsample"] == 0) ? "Off" : "On");
-          
-          PrintSettingLine(prefix + "Duration", settings[keyPrefix + "duration"]);
-          PrintSettingLine(prefix + "Pre-trigger", settings[keyPrefix + "pretrigger"]);
-/*    def print_settings(self, s, dict_key_leader, tab):
-        subsample = s.get(dict_key_leader + 'subsample')
-        if subsample == None or subsample == 0:
-            print tab + "Sub-sampling: Off"
-        else:
-            print tab + "Sub-sampling: On"
-        self._print_setting_line(tab + "Duration", s.get(dict_key_leader + 'duration'))
-        self._print_setting_line(tab + "Pre-trigger", s.get(dict_key_leader + 'pretrigger'))
-*/          
+            PrintSettingLine(prefix + "Frame Rate", settings[keyPrefix + "frame_rate"]);
+            PrintSettingLine(prefix + "Horizontal", settings[keyPrefix + "horizontal"]);
+            PrintSettingLine(prefix + "Vertical", settings[keyPrefix + "vertical"]);
+
+            Console.Write($"{prefix}Sub-sampling: ");
+            Console.WriteLine((!settings.ContainsKey(keyPrefix + "subsample") || (long)settings[keyPrefix + "subsample"] == 0) ? "Off" : "On");
+
+            PrintSettingLine(prefix + "Duration", settings[keyPrefix + "duration"]);
+            PrintSettingLine(prefix + "Pre-trigger", settings[keyPrefix + "pretrigger"]);
         }
-    }
+
+        public Dictionary<string, object> ConfigureCamera(Dictionary<string, Object> settings)
+        {
+            // Configure camera using the requested_settings dictionary.
+            // Calculates a camera configuration based on the requested values, camera limitations, and
+            // a prioritized scheme to to eliminate inconsistencies.
+            // return: dictionary of requested setting values along with the allowed values.
+            string jdata = PostTarget("/configure_camera", settings);
+
+            return (Dictionary<string, object>)JsonConvert.DeserializeObject(jdata, typeof(Dictionary<string, object>));
+        }
+
+        public List<string> GetFavoriteIds()
+        {
+            // returns: list of saved favorite setting identifiers, will be an empty list if no settings have been saved.
+            var jdata = FetchTarget("/get_favorite_ids");
+
+            return (List<string>)JsonConvert.DeserializeObject(jdata, typeof(List<string>));
+        }
+
+        public void DeleteAllFavorites()
+        {
+            var ids = GetFavoriteIds();
+
+            foreach (var id in ids)
+            {
+                var result = DeleteFavorite(id);
+
+                Console.WriteLine($"result after delete: {result}");
+            }
+        }
+
+        public int DeleteFavorite(string id)
+        {
+            // Deletes a previously saved favorite using id to identify which favorite to delete
+            // returns: CAMAPI status
+            return int.Parse(FetchTarget($"/delete_favorite?id={id}"));
+        }
+
+        public int SaveFavorite(Dictionary<string, object> settings)
+        {
+            // Save a set of camera settings.  The supplied settings must have an id key set to a valid value.
+            // returns: CAMAPI status okay, illegal parameter, or storage error
+            return int.Parse(PostTarget("/save_favorite", settings));
+        }
+
+        public Dictionary<string, object> GetFavorite(string id)
+        {
+            // returns: dictionary containing previously saved favorite settings with identifier id.
+            string jdata = FetchTarget($"/get_favorite?id={id}");
+
+            return (Dictionary<string, object>)JsonConvert.DeserializeObject(jdata, typeof(Dictionary<string, object>));
+        }
+
+        public int Run(Dictionary<string, object> settings){
+            // Reconfigures the camara to use the best match values based on the requested values,
+            // calibrates the camera using those values, and starts capturing the pre-trigger video frames.
+            // The best match values are the same balues as those returned by configure_camera().
+            // return: outcome, either CAMAPI_STATUS_OKAY or CAMAPI_STATUS_INVALID_STATE
+
+             return int.Parse(PostTarget("/run", settings));
+       }
+}
 }

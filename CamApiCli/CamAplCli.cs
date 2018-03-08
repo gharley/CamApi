@@ -23,6 +23,41 @@ namespace CamApiCli
             }
         }
 
+        public void FavoritesTest(){
+            api.DeleteAllFavorites();
+            Console.WriteLine($"Number of favorite IDs (should be 0): {api.GetFavoriteIds().Count}");
+
+            var settings = api.GetCurrentSettings();
+
+            settings["id"] = 5;
+            settings["duration"] = 2;
+            settings["notes"] = "Favorite settings stored in ID slot 5";
+
+            api.SaveFavorite(settings);
+            Console.WriteLine("Saved settings in ID slot 5");
+
+            settings = api.GetCurrentSettings();
+
+            settings["id"] = 3;
+            settings["duration"] = 4;
+            settings["notes"] = "Favorite settings stored in ID slot 3";
+
+            api.SaveFavorite(settings);
+            Console.WriteLine("Saved settings in ID slot 3");
+
+            Console.WriteLine($"Saved favorite ID list: {string.Join(", ", api.GetFavoriteIds())}");
+
+            settings = api.GetFavorite("5");
+            var allowedSettings = api.ConfigureCamera(settings);
+
+            api.Run(allowedSettings);
+            Console.WriteLine("Retreived favorite settings 5 and configured the camera using those settings");
+
+            api.DeleteFavorite("3");
+            Console.WriteLine("Deleted previously save favorite in ID slot 3");
+            Console.WriteLine($"Saved favorite ID list: {string.Join(", ", api.GetFavoriteIds())}");
+        }
+
         public void TestBasicFunctionality()
         {
             try
@@ -38,15 +73,46 @@ namespace CamApiCli
                 Console.WriteLine($"Directory path to active storage device: {api.GetStorageDir()}");
 
                 var storageInfo = api.GetStorageInfo();
-                Console.WriteLine($"Storage information: {storageInfo["available_space"]} / " + 
+                Console.WriteLine($"Storage information: {storageInfo["available_space"]} / " +
                     $"{storageInfo["storage_size"]} bytes, mount point: {storageInfo["mount_point"]}");
 
                 Console.WriteLine("Camera information:");
                 Console.Write(api.GetInfoString("    "));
 
                 var settings = api.GetSavedSettins();
+
                 Console.WriteLine("Saved camera settings:");
                 api.PrintSettings(settings, "requested_", "    ");
+
+                settings = api.GetCurrentSettings();
+
+                Console.WriteLine("Current requested camera settings:");
+                api.PrintSettings(settings, "requested_", "    ");
+
+                Console.WriteLine("Current allowed camera settings:");
+                api.PrintSettings(settings, "", "    ");
+
+                var requestedSettings = new Dictionary<string, object>(){
+                    {"requested_iso", null},
+                    {"requested_exposure", 1/500.0},
+                    {"requested_frame_rate", 60},
+                    {"requested_horizontal", 640},
+                    {"requested_vertical", 480},
+                    {"requested_subsample", 1},
+                    {"requested_duration", 10},
+                    {"requested_pretrigger", 50},
+                    {"requested_multishot_count", 1}
+                };
+
+                settings = api.ConfigureCamera(requestedSettings);
+
+                Console.WriteLine("Requested camera settings:");
+                api.PrintSettings(settings, "requested_", "    ");
+
+                Console.WriteLine("Allowed camera settings:");
+                api.PrintSettings(settings, "", "    ");
+
+                FavoritesTest();
             }
             catch (Exception ex)
             {
