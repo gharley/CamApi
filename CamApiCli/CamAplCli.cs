@@ -34,6 +34,12 @@ namespace CamApiCli
                 Console.WriteLine($"Camera extended status - state {camStatus["state"]}, level {camStatus["level"]}, flags {camStatus["flags"]}, IS temp (C) {camStatus["is_temp"]}, FPGA temp (C) {camStatus["fpga_temp"]}");
 
                 Console.WriteLine($"Status string: {api.GetStatusString()}");
+
+                Console.WriteLine($"Directory path to active storage device: {api.GetStorageDir()}");
+
+                var storageInfo = api.GetStorageInfo();
+                Console.WriteLine($"Storage information: {storageInfo["available_space"]} / " + 
+                    $"{storageInfo["storage_size"]} bytes, mount point: {storageInfo["mount_point"]}");
             }
             catch (Exception ex)
             {

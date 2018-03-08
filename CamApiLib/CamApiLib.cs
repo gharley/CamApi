@@ -20,20 +20,20 @@ namespace CamApi
 
         public enum CAMAPI_FLAG
         {
-            STORAGE_FULL                  = 0x000001, 
-            STORAGE_MISSING_OR_UNMOUNTED  = 0x000002, 
-            USB_STORAGE_INSTALLED         = 0x000004, 
-            SD_CARD_STORAGE_INSTALLED     = 0x000008,
-            USB_STORAGE_FULL              = 0x000010,
-            SD_CARD_STORAGE_FULL          = 0x000020, 
-            STORAGE_BAD                   = 0x000040, 
-            NET_CONFIGURED                = 0x000080, 
-            NET_NOT_MOUNTABLE             = 0x000100, 
-            NET_FULL                      = 0x000200, 
-            USB_STORAGE_UNMOUNTED         = 0x000400, 
-            SD_CARD_STORAGE_UNMOUNTED     = 0x008000,
-             GENLOCK_NO_SIGNAL            = 0x400000, 
-             GENLOCK_CONFIG_ERROR         = 0x800000
+            STORAGE_FULL = 0x000001,
+            STORAGE_MISSING_OR_UNMOUNTED = 0x000002,
+            USB_STORAGE_INSTALLED = 0x000004,
+            SD_CARD_STORAGE_INSTALLED = 0x000008,
+            USB_STORAGE_FULL = 0x000010,
+            SD_CARD_STORAGE_FULL = 0x000020,
+            STORAGE_BAD = 0x000040,
+            NET_CONFIGURED = 0x000080,
+            NET_NOT_MOUNTABLE = 0x000100,
+            NET_FULL = 0x000200,
+            USB_STORAGE_UNMOUNTED = 0x000400,
+            SD_CARD_STORAGE_UNMOUNTED = 0x008000,
+            GENLOCK_NO_SIGNAL = 0x400000,
+            GENLOCK_CONFIG_ERROR = 0x800000
         }
 
         private static Dictionary<string, string> lookup = new Dictionary<string, string>(){
@@ -109,7 +109,9 @@ namespace CamApi
 
             try
             {
-                Console.WriteLine(string.Format("    Fetching: {0}", url));
+#if DEBUG
+                Console.WriteLine($"    Fetching: {url}");
+#endif
 
                 WebRequest request = WebRequest.Create(url);
                 WebResponse response = request.GetResponse();
@@ -119,7 +121,7 @@ namespace CamApi
             }
             catch (Exception ex)
             {
-                Console.WriteLine("ERROR: unable to fetch: " + url);
+                Console.WriteLine($"ERROR: unable to fetch: {url}");
                 Console.WriteLine(ex.Message);
             }
 
@@ -134,7 +136,9 @@ namespace CamApi
 
             try
             {
-                Console.WriteLine(string.Format("    Posting: {0}", url));
+#if DEBUG
+                Console.WriteLine($"    Posting: {url}");
+#endif
 
                 WebRequest request = WebRequest.Create(url);
                 string jsonData = JsonConvert.SerializeObject(data);
@@ -157,7 +161,7 @@ namespace CamApi
             }
             catch (Exception ex)
             {
-                Console.WriteLine("ERROR: unable to post: " + url);
+                Console.WriteLine($"ERROR: unable to post: {url}");
                 Console.WriteLine(ex.Message);
             }
 
@@ -248,15 +252,17 @@ namespace CamApi
         }
 
 
-      private static string[] suffixes = {"bytes", "KB", "MB", "GB"};
-      private string SizeofFmt(double num){
-        foreach( var suffix in suffixes  ){
-          if(num < 1024.0) return string.Format("{0:0.0} " + suffix, num);
-          num /= 1024.0;
-        }
+        private static string[] suffixes = { "bytes", "KB", "MB", "GB" };
+        private string SizeofFmt(double num)
+        {
+            foreach (var suffix in suffixes)
+            {
+                if (num < 1024.0) return string.Format("{0:0.0} " + suffix, num);
+                num /= 1024.0;
+            }
 
-        return string.Format("{0:0.0} TB", num);
-      }
+            return string.Format("{0:0.0} TB", num);
+        }
 
         public IDictionary<string, object> GetCamStatus()
         {
@@ -266,57 +272,103 @@ namespace CamApi
             return (IDictionary<string, object>)JsonConvert.DeserializeObject(jdata, typeof(IDictionary<string, object>));
         }
 
-        /*
-            def get_status_string(self):
-                """"""
-                statusdict = self.get_camstatus()
-                space = statusdict.get('available_space')
-                if space == None:
-                    space = 0
-                s = "State: %s; Level: %d; Flags: %s; Empty: %s" % (self.get_text_state(statusdict.get("state")),
-                                                                    statusdict.get("level"),
-                                                                    self._get_text_flags(statusdict.get("flags")),
-                                                                    self._sizeof_fmt(space))
+        public IDictionary<string, object> GetCurrentSettings()
+        {
+            // Returns dictionary containing the current requested camera settings that are being used if camera is active,
+            // otherwise None. Dictionary may contain other values - do not count on them being present in future versions of CAMAPI.
+            // Defined camera settings documented at http://wiki.edgertronic.com/index.php/Software_developers_kit
+            string jdata = FetchTarget("/get_current_settings");
 
-                if statusdict.get("captured_buffers") != None and \
-                        statusdict.get("active_buffer") != None and \
-                        statusdict.get("state") == CAMAPI_STATE_SAVING:
-                    s += "; Saving multishot: %d/%d" % (statusdict.get("active_buffer"), statusdict.get("captured_buffers"))
-                elif statusdict.get("captured_buffers") != None and \
-                        statusdict.get("active_buffer") != None and \
-                        statusdict.get("state") == CAMAPI_STATE_SELECTIVE_SAVING:
-                    s += "; Selective saving multishot: %d/%d" % (statusdict.get("active_buffer"), statusdict.get("captured_buffers"))
-                elif statusdict.get("active_buffer") != None and statusdict.get("state") == CAMAPI_STATE_TRIGGERED:
-                    active_settings = self.get_current_settings()
-                    s += "; Capturing multishot: %d/%d" % (statusdict.get("active_buffer"), active_settings.get('multishot_count'))
-                elif statusdict.get("active_buffer") != None:
-                    active_settings = self.get_current_settings()
-                    s += "; Pre-filling multishot: %d/%d" % (statusdict.get("active_buffer"), active_settings.get('multishot_count'))
-                elif statusdict.get("captured_buffers") != None and \
-                        statusdict.get("active_buffer") != None and \
-                        statusdict.get("state") == CAMAPI_STATE_REVIEWING:
-                    s += "; Reviewing multishot: %d" % statusdict.get("active_buffer")
-
-                return s
-         */
+            return (IDictionary<string, object>)JsonConvert.DeserializeObject(jdata, typeof(IDictionary<string, object>));
+        }
 
         public string GetStatusString()
         {
             // Returns human readable string of the current device status.  Text format will change in the future.
             string result;
             var camStatus = GetCamStatus();
+            var state = (CAMERA_STATE)Enum.ToObject(typeof(CAMERA_STATE), camStatus["state"]);
 
-            result = $"State: {GetTextState((CAMERA_STATE)Enum.ToObject(typeof(CAMERA_STATE), camStatus["state"]))}; Level: {camStatus["level"]}; " + 
-            $"Flags: {GetTextFlags((long)camStatus["flags"])}; Empty: {SizeofFmt((double)((long)camStatus["available_space"]))}";
+            result = $"State: {GetTextState(state)}; Level: {camStatus["level"]}; " +
+              $"Flags: {GetTextFlags((long)camStatus["flags"])}; Empty: {SizeofFmt((double)((long)camStatus["available_space"]))}";
+
+            if (camStatus.ContainsKey("active_buffer"))
+            {
+                var activeBuffer = (long)camStatus["active_buffer"];
+
+                if (camStatus.ContainsKey("captured_buffers"))
+                {
+                    var capturedBuffers = (long)camStatus["captured_buffers"];
+
+                    switch (state)
+                    {
+                        case CAMERA_STATE.CAMAPI_STATE_SAVING:
+                            result += $"; Saving multishot: {activeBuffer}/{capturedBuffers}";
+                            break;
+                        case CAMERA_STATE.CAMAPI_STATE_SELECTIVE_SAVING:
+                            result += $"; Selective saving multishot: {activeBuffer}/{capturedBuffers}";
+                            break;
+                        case CAMERA_STATE.CAMAPI_STATE_REVIEWING:
+                            result += $"; Reviewing multishot: {activeBuffer}";
+                            break;
+                        default:
+                            break;
+                    }
+                }
+                else
+                {
+                    var activeSettings = GetCurrentSettings();
+
+                    if (state == CAMERA_STATE.CAMAPI_STATE_TRIGGERED)
+                    {
+                        result += $"; Capturing multishot: {activeBuffer}/{activeSettings["multishot_count"]}";
+                    }
+                    else
+                    {
+                        result += $"; Pre-filling multishot: {activeBuffer}/{activeSettings["multishot_count"]}";
+                    }
+                }
+            }
 
             return result;
         }
+
+        /*
+            def get_storage_dir(self):
+                """
+                Returns path to mount point of the active storage device or None if there is no storage device available.
+                """
+                jdata = self._fetch_target('/get_storage_dir')
+                return yaml.load(jdata)
+         */
         public int GetPretriggerFillLevel()
         {
             // Returns accurate value of the actual pretrigger buffer fill level.
             string jdata = FetchTarget("/pretrigger_buffer_fill_level");
 
             return (int)JsonConvert.DeserializeObject(jdata);
+        }
+
+        public string GetStorageDir()
+        {
+            // Returns path to mount point of the active storage device or None if there is no storage device available.
+            string jdata = FetchTarget("/get_storage_dir");
+
+            return (string)JsonConvert.DeserializeObject(jdata);
+        }
+
+        public IDictionary<string, object> GetStorageInfo(string device = null)
+        {
+            // Returns a dictonary containing information about the storage device , or about active storage device if device is not set
+            string url = "/get_storage_info";
+
+            if(!string.IsNullOrEmpty(device)){
+              url += "?device=" + device;
+            }
+
+            string jdata = FetchTarget(url);
+
+            return (IDictionary<string, object>)JsonConvert.DeserializeObject(jdata, typeof(IDictionary<string, object>));
         }
     }
 }
