@@ -49,6 +49,7 @@ namespace CamApiCli
 
             var cli = new CamApiCli(config["Address"]);
 
+            cli.TestBasicFunctionality();
         }
     }
 }
