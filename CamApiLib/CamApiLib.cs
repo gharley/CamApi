@@ -207,7 +207,7 @@ namespace CamApi
         {
             Console.Write(label + ": ");
             if (value == null) Console.WriteLine("None");
-            else Console.WriteLine($"{value}");
+            else Console.WriteLine($"{value:g6}");
         }
 
         private static string[] suffixes = { "bytes", "KB", "MB", "GB" };
@@ -245,11 +245,40 @@ namespace CamApi
             }
         }
 
-        public int DeleteFavorite(string id)
+        public CAMAPI_STATUS DeleteFavorite(string id)
         {
             // Deletes a previously saved favorite using id to identify which favorite to delete
             // returns: CAMAPI status
-            return int.Parse(FetchTarget($"/delete_favorite?id={id}"));
+            string jdata = FetchTarget($"/delete_favorite?id={id}");
+
+            return (CAMAPI_STATUS)JsonConvert.DeserializeObject(jdata, typeof(CAMAPI_STATUS));
+        }
+
+        public CAMAPI_STATUS EraseAllFiles(string device = null)
+        {
+            // Erases all the files in the DCIM directory on the active storage device if dev=None.
+            // You can use dev="USB" or dev="SD" to specify device to have files erased.
+            // return: outcome, either CAMAPI.STATUS_OKAY or CAMAPI_STATUS.STORAGE_ERROR
+            string url = "/erase_all_files";
+
+            if (device != null) url += $"?device={device}";
+
+            string jdata = FetchTarget(url);
+
+            return (CAMAPI_STATUS)JsonConvert.DeserializeObject(jdata, typeof(CAMAPI_STATUS));
+        }
+
+        public CAMAPI_STATUS FormatStorage(string device = null)
+        {
+            // Formats active storage device is dev is not specified.  Use dev="USB" or dev="SD" to specify device to be formatted.
+            // return: outcome, either CAMAPI.STATUS_OKAY or CAMAPI_STATUS.STORAGE_ERROR
+            string url = "/format";
+
+            if (device != null) url += $"?device={device}";
+
+            string jdata = FetchTarget(url);
+
+            return (CAMAPI_STATUS)JsonConvert.DeserializeObject(jdata, typeof(CAMAPI_STATUS));
         }
 
         public Dictionary<string, object> GetCamInfo()
@@ -418,7 +447,20 @@ namespace CamApi
             result += $"{prefix}Ethernet MAC Address: {info["mac_addr"]}\n";
 
             return result;
+        }
 
+        public CAMAPI_STATUS Mount(string device = null)
+        {
+            // Attempts to mount specified storage device. Use /mount?device=USB,
+            // /mount?device=SD, or /mount?device=NET to specify the device.
+            // Returns: CAMAPI_STATUS.OKAY or CAMAPI_STATUS.STORAGE_ERROR, CAMAPI_STATUS.INVALID_PARAMETER
+            string url = "/mount";
+
+            if (device != null) url += $"?device={device}";
+
+            string jdata = FetchTarget(url);
+
+            return (CAMAPI_STATUS)JsonConvert.DeserializeObject(jdata, typeof(CAMAPI_STATUS));
         }
 
         public void PrintSettings(Dictionary<string, object> settings, string keyPrefix, string prefix)
@@ -427,7 +469,7 @@ namespace CamApi
 
             var exposure = (double)settings[keyPrefix + "exposure"];
             if (exposure == 0) Console.WriteLine($"{prefix}Shutter: None");
-            else Console.WriteLine($"{prefix}Shutter: {1 / exposure:0.00}");
+            else Console.WriteLine($"{prefix}Shutter: {1 / exposure:g6}");
 
             PrintSettingLine(prefix + "Frame Rate", settings[keyPrefix + "frame_rate"]);
             PrintSettingLine(prefix + "Horizontal", settings[keyPrefix + "horizontal"]);
@@ -440,21 +482,103 @@ namespace CamApi
             PrintSettingLine(prefix + "Pre-trigger", settings[keyPrefix + "pretrigger"]);
         }
 
-        public int Run(Dictionary<string, object> settings)
+        public CAMAPI_STATUS Run(Dictionary<string, object> settings)
         {
             // Reconfigures the camara to use the best match values based on the requested values,
             // calibrates the camera using those values, and starts capturing the pre-trigger video frames.
             // The best match values are the same balues as those returned by configure_camera().
-            // return: outcome, either CAMAPI_STATUS_OKAY or CAMAPI_STATUS_INVALID_STATE
+            // return: outcome, either CAMAPI_STATUS.OKAY or CAMAPI_STATUS.INVALID_STATE
 
-            return int.Parse(PostTarget("/run", settings));
+            string jdata = PostTarget("/run", settings);
+
+            return (CAMAPI_STATUS)JsonConvert.DeserializeObject(jdata, typeof(CAMAPI_STATUS));
         }
 
-        public int SaveFavorite(Dictionary<string, object> settings)
+        public CAMAPI_STATUS Save()
+        {
+            // Saves videos when multishot capture is enabled and one or more multishot buffers contain unsaved videos.
+            // :return: outcome, either CAMAPI_STATUS.OKAY or CAMAPI_STATUS.INVALID_STATE
+            string url = "/save";
+
+            string jdata = FetchTarget(url);
+
+            return (CAMAPI_STATUS)JsonConvert.DeserializeObject(jdata, typeof(CAMAPI_STATUS));
+        }
+
+        public CAMAPI_STATUS SaveFavorite(Dictionary<string, object> settings)
         {
             // Save a set of camera settings.  The supplied settings must have an id key set to a valid value.
-            // returns: CAMAPI status okay, illegal parameter, or storage error
-            return int.Parse(PostTarget("/save_favorite", settings));
+            // returns: CAMAPI_STATUS.OKAY, CAMAPI_STATUS.INVALID_PARAMETER, or CAMAPI_STATUS.STORAGE_ERROR
+            string jdata = PostTarget("/save_favorite", settings);
+
+            return (CAMAPI_STATUS)JsonConvert.DeserializeObject(jdata, typeof(CAMAPI_STATUS));
+        }
+
+        public CAMAPI_STATUS SelectiveSave(Dictionary<string, object> parameters)
+        {
+            // Save portion of video previously stored in DDR3 memory.  Captured videos in DDR3 are not modified.
+            // :param parameters['buffer_index']: which multishot buffer to save.
+            // :param parameters['start_frame']: Starting frame to save.
+            // :param parameters['end_frame']: Ending frame to save.
+            // :param parameters['filename']: Optional, specify base filename (no path, no suffix) used for saving video and metadata
+            // :return: outcome, CAMAPI_STATUS.OKAY, CAMAPI_STATUS.INVALID_STATE, CAMAPI_STATUS.INVALID_PARAMETER
+            string jdata = PostTarget("/selective_save", parameters);
+
+            return (CAMAPI_STATUS)JsonConvert.DeserializeObject(jdata, typeof(CAMAPI_STATUS));
+        }
+
+        public CAMAPI_STATUS StopSave(bool discardUnsaved = false)
+        {
+            // Stop save that is in process, truncating video to the portion saved so far.  Rest of captured video data is discarded.
+            // If there are more unsaved multishot videos and discard_unsaved is set, the rest of the unsaved videos are
+            // discarded as well.
+            // :return: outcome, either CAMAPI_STATUS.OKAY or CAMAPI_STATUS.INVALID_STATE
+            string url = "/save_stop";
+
+            if (discardUnsaved) url += $"?discard_unsaved=1";
+
+            string jdata = FetchTarget(url);
+
+            return (CAMAPI_STATUS)JsonConvert.DeserializeObject(jdata, typeof(CAMAPI_STATUS));
+        }
+
+        public CAMAPI_STATUS Trigger(string baseFilename = null)
+        {
+            // Stops filling the pre-trigger portion buffer and starts filling the post-trigger portion of the buffer.
+            // The base filename will have a ".mov"
+            // extension appended for the movie file and a ".txt" extension appended for the file containing
+            // the video capture metadata.  The file will be saved it the active storage device unless the
+            // baseFilename starts with a slash ('/'), in which case the baseFilename is used without
+            // prepending the path to the active storage device.
+
+            // :param baseFilename: Name of file to use to hold the captured video.  baseFilename should not
+            //                     have an extension.  If the baseFilename begins with '/', then the path
+            //                     to the active storage device is not prepended.
+            // :return: outcome, either CAMAPI.STATUS_OKAY or CAMAPI_STATUS.INVALID_STATE
+            string url = "/trigger";
+
+            if (baseFilename != null) url += $"?base_filename={baseFilename}";
+
+            string jdata = FetchTarget(url);
+
+            return (CAMAPI_STATUS)JsonConvert.DeserializeObject(jdata, typeof(CAMAPI_STATUS));
+        }
+
+        public CAMAPI_STATUS Unmount(string device = null)
+        {
+            // Attempts to unmount mnt_pt or selected storage device if dev is None.
+            // Use dev="USB" or dev="SD" to specify device to be unmounted. Unmounting
+            // the selected storage device causes the camera to select USB
+            // storage if possible or SD storage if USB storage is unavailable and
+            // SD storage is usable.
+            // Returns: CAMAPI_STATUS.OKAY or CAMAPI_STATUS.STORAGE_ERROR
+            string url = "/unmount";
+
+            if (device != null) url += $"?device={device}";
+
+            string jdata = FetchTarget(url);
+
+            return (CAMAPI_STATUS)JsonConvert.DeserializeObject(jdata, typeof(CAMAPI_STATUS));
         }
     }
 }
