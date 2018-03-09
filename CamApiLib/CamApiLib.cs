@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Net;
+using System.Threading;
 
 using Newtonsoft.Json;
 
@@ -222,6 +223,24 @@ namespace CamApi
             return string.Format("{0:0.0} TB", num);
         }
 
+        public CAMAPI_STATUS Cancel()
+        {
+            // Cancel filling post-trigger buffer or save if either is occurring.
+            // return: outcome, either CAMAPI_STATUS.OKAY or CAMAPI_STATUS.INVALID_STATE
+            string jdata = FetchTarget("/cancel");
+
+            return (CAMAPI_STATUS)JsonConvert.DeserializeObject(jdata, typeof(CAMAPI_STATUS));
+        }
+
+        public bool CheckState(CAMERA_STATE desiredState)
+        {
+            // Returns True if camera is in desired_state.
+            var camStatus = GetCamStatus();
+            var state = (CAMERA_STATE)Enum.ToObject(typeof(CAMERA_STATE), camStatus["state"]);
+
+            return (state == desiredState);
+        }
+
         public Dictionary<string, object> ConfigureCamera(Dictionary<string, Object> settings)
         {
             // Configure camera using the requested_settings dictionary.
@@ -252,6 +271,41 @@ namespace CamApi
             string jdata = FetchTarget($"/delete_favorite?id={id}");
 
             return (CAMAPI_STATUS)JsonConvert.DeserializeObject(jdata, typeof(CAMAPI_STATUS));
+        }
+
+        public void ExpectRunningState()
+        {
+            // With smart calibrate, the camera may or may not be in the calibrating state.
+            // If calibrating, wait for caibration to complete before returning.
+            int timeout = 4;
+
+            while (CheckState(CAMERA_STATE.CALIBRATING) && timeout > 0)
+            {
+                timeout--;
+                Console.WriteLine($"    {GetStatusString()}");
+                Thread.Sleep(1000);
+            }
+
+            var camStatus = GetCamStatus();
+            var state = (CAMERA_STATE)Enum.ToObject(typeof(CAMERA_STATE), camStatus["state"]);
+
+            if (state != CAMERA_STATE.RUNNING && state != CAMERA_STATE.RUNNING_PRETRIGGER_FULL)
+            {
+                Console.WriteLine($"Camera not in running state: {GetTextState(state)}");
+                Environment.Exit(1);
+            }
+        }
+
+        public void ExpectState(CAMERA_STATE anticipatedState)
+        {
+            var camStatus = GetCamStatus();
+            var state = (CAMERA_STATE)Enum.ToObject(typeof(CAMERA_STATE), camStatus["state"]);
+
+            if (state != anticipatedState)
+            {
+                Console.WriteLine($"Camera not in expected state: anticipated {GetTextState(anticipatedState)} != {GetTextState(state)}");
+                Environment.Exit(1);
+            }
         }
 
         public CAMAPI_STATUS EraseAllFiles(string device = null)
@@ -323,12 +377,44 @@ namespace CamApi
             return (List<string>)JsonConvert.DeserializeObject(jdata, typeof(List<string>));
         }
 
-        public int GetPretriggerFillLevel()
+        private static Dictionary<string, string> infoLookup = new Dictionary<string, string>(){
+          {"sw_build_date", "Software build date"},
+          {"build_date", "Hardware build date"},
+          {"fpga_version", "FPGA version"},
+          {"model_number", "Model Number"},
+          {"serial_number", "Serial Number"},
+          {"hardware_revision", "Hardware Revision"},
+          {"hardware_configuration", "Hardware Configuration"}
+        };
+
+        public string GetInfoString(string prefix)
+        {
+            // Returns human readable text describing the camera.  Text format will change in the future.
+            var info = GetCamInfo();
+            string result = string.Join(prefix, from kv in infoLookup
+                                                where info.ContainsKey(kv.Key)
+                                                select $"{kv.Value}: {info[kv.Key]}\n");
+
+            if (info.ContainsKey("ir_filter"))
+                result += prefix + $"IR Filter: {((long)info["ir_filter"] != 0 ? "" : "not ")} installed\n";
+
+            result += $"{prefix}Ethernet MAC Address: {info["mac_addr"]}\n";
+
+            return result;
+        }
+
+        public string GetLastSavedFilename(){
+            // Returns filename used by the last successful video capture.
+            // Note: API is deprecated, better to query file system directly.
+            return FetchTarget("/get_last_saved_filename");
+        }
+
+        public long GetPretriggerFillLevel()
         {
             // Returns accurate value of the actual pretrigger buffer fill level.
             string jdata = FetchTarget("/pretrigger_buffer_fill_level");
 
-            return (int)JsonConvert.DeserializeObject(jdata);
+            return (long)JsonConvert.DeserializeObject(jdata);
         }
 
         public Dictionary<string, object> GetSavedSettins(string id = null)
@@ -423,32 +509,6 @@ namespace CamApi
             return (Dictionary<string, object>)JsonConvert.DeserializeObject(jdata, typeof(Dictionary<string, object>));
         }
 
-        private static Dictionary<string, string> infoLookup = new Dictionary<string, string>(){
-          {"sw_build_date", "Software build date"},
-          {"build_date", "Hardware build date"},
-          {"fpga_version", "FPGA version"},
-          {"model_number", "Model Number"},
-          {"serial_number", "Serial Number"},
-          {"hardware_revision", "Hardware Revision"},
-          {"hardware_configuration", "Hardware Configuration"}
-        };
-
-        public string GetInfoString(string prefix)
-        {
-            // Returns human readable text describing the camera.  Text format will change in the future.
-            var info = GetCamInfo();
-            string result = string.Join(prefix, from kv in infoLookup
-                                                where info.ContainsKey(kv.Key)
-                                                select $"{kv.Value}: {info[kv.Key]}\n");
-
-            if (info.ContainsKey("ir_filter"))
-                result += prefix + $"IR Filter: {((long)info["ir_filter"] != 0 ? "" : "not ")} installed\n";
-
-            result += $"{prefix}Ethernet MAC Address: {info["mac_addr"]}\n";
-
-            return result;
-        }
-
         public CAMAPI_STATUS Mount(string device = null)
         {
             // Attempts to mount specified storage device. Use /mount?device=USB,
@@ -514,20 +574,7 @@ namespace CamApi
             return (CAMAPI_STATUS)JsonConvert.DeserializeObject(jdata, typeof(CAMAPI_STATUS));
         }
 
-        public CAMAPI_STATUS SelectiveSave(Dictionary<string, object> parameters)
-        {
-            // Save portion of video previously stored in DDR3 memory.  Captured videos in DDR3 are not modified.
-            // :param parameters['buffer_index']: which multishot buffer to save.
-            // :param parameters['start_frame']: Starting frame to save.
-            // :param parameters['end_frame']: Ending frame to save.
-            // :param parameters['filename']: Optional, specify base filename (no path, no suffix) used for saving video and metadata
-            // :return: outcome, CAMAPI_STATUS.OKAY, CAMAPI_STATUS.INVALID_STATE, CAMAPI_STATUS.INVALID_PARAMETER
-            string jdata = PostTarget("/selective_save", parameters);
-
-            return (CAMAPI_STATUS)JsonConvert.DeserializeObject(jdata, typeof(CAMAPI_STATUS));
-        }
-
-        public CAMAPI_STATUS StopSave(bool discardUnsaved = false)
+        public CAMAPI_STATUS SaveStop(bool discardUnsaved = false)
         {
             // Stop save that is in process, truncating video to the portion saved so far.  Rest of captured video data is discarded.
             // If there are more unsaved multishot videos and discard_unsaved is set, the rest of the unsaved videos are
@@ -538,6 +585,19 @@ namespace CamApi
             if (discardUnsaved) url += $"?discard_unsaved=1";
 
             string jdata = FetchTarget(url);
+
+            return (CAMAPI_STATUS)JsonConvert.DeserializeObject(jdata, typeof(CAMAPI_STATUS));
+        }
+
+        public CAMAPI_STATUS SelectiveSave(Dictionary<string, object> parameters)
+        {
+            // Save portion of video previously stored in DDR3 memory.  Captured videos in DDR3 are not modified.
+            // :param parameters['buffer_index']: which multishot buffer to save.
+            // :param parameters['start_frame']: Starting frame to save.
+            // :param parameters['end_frame']: Ending frame to save.
+            // :param parameters['filename']: Optional, specify base filename (no path, no suffix) used for saving video and metadata
+            // :return: outcome, CAMAPI_STATUS.OKAY, CAMAPI_STATUS.INVALID_STATE, CAMAPI_STATUS.INVALID_PARAMETER
+            string jdata = PostTarget("/selective_save", parameters);
 
             return (CAMAPI_STATUS)JsonConvert.DeserializeObject(jdata, typeof(CAMAPI_STATUS));
         }
@@ -579,6 +639,23 @@ namespace CamApi
             string jdata = FetchTarget(url);
 
             return (CAMAPI_STATUS)JsonConvert.DeserializeObject(jdata, typeof(CAMAPI_STATUS));
+        }
+
+        public void WaitForTransition(string label, CAMERA_STATE currentState, int timeout)
+        {
+            Console.WriteLine($"    {label}");
+
+            while (CheckState(currentState) && timeout > 0)
+            {
+                timeout--;
+                Console.WriteLine($"        {GetStatusString()}");
+                Thread.Sleep(1000);
+            }
+
+            var camStatus = GetCamStatus();
+            var state = (CAMERA_STATE)Enum.ToObject(typeof(CAMERA_STATE), camStatus["state"]);
+
+            Console.WriteLine($"        Transition complete - new state: {GetTextState(state)}");
         }
     }
 }
