@@ -23,4 +23,9 @@ namespace CamApi
         GENLOCK_NO_SIGNAL = 0x400000,
         GENLOCK_CONFIG_ERROR = 0x800000
     }
+
+    public enum CAMAPI_STATUS
+    {
+        OKAY = 1, INVALID_STATE, STORAGE_ERROR, CODE_OUT_OF_DATE, INVALID_PARAMETER
+    };
 }
