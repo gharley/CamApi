@@ -140,53 +140,24 @@ namespace CamApi
             return result;
         }
 
+        private static Dictionary<CAMERA_STATE, string> TextStateLookup = new Dictionary<CAMERA_STATE, string>(){
+          {CAMERA_STATE.CALIBRATING, "Calibrating"},
+          {CAMERA_STATE.REVIEWING, "Reviewing"},
+          {CAMERA_STATE.RUNNING, "Running"},
+          {CAMERA_STATE.RUNNING_PRETRIGGER_FULL, "Running pretrigger buffer full"},
+          {CAMERA_STATE.SELECTIVE_SAVING, "Selective saving"},
+          {CAMERA_STATE.SAVING, "Saving"},
+          {CAMERA_STATE.SAVE_CANCELED, "Save canceled"},
+          {CAMERA_STATE.SAVE_INTERRUPTED, "Save interrupted"},
+          {CAMERA_STATE.SAVE_TRUNCATING, "Save truncating"},
+          {CAMERA_STATE.TRIGGERED, "Triggered"},
+          {CAMERA_STATE.TRIGGER_CANCELED, "Trigger canceled"},
+          {CAMERA_STATE.UNCONFIGURED, "Unconfigured"},
+        };
+
         private string GetTextState(CAMERA_STATE state)
         {
-            string result;
-
-            switch (state)
-            {
-                case CAMERA_STATE.UNCONFIGURED:
-                    result = "Unconfigured";
-                    break;
-                case CAMERA_STATE.CALIBRATING:
-                    result = "Calibrating";
-                    break;
-                case CAMERA_STATE.RUNNING:
-                    result = "Running";
-                    break;
-                case CAMERA_STATE.RUNNING_PRETRIGGER_FULL:
-                    result = "Running pretrigger buffer full";
-                    break;
-                case CAMERA_STATE.TRIGGERED:
-                    result = "Triggered";
-                    break;
-                case CAMERA_STATE.SAVING:
-                    result = "Saving";
-                    break;
-                case CAMERA_STATE.TRIGGER_CANCELED:
-                    result = "Trigger canceled";
-                    break;
-                case CAMERA_STATE.SAVE_CANCELED:
-                    result = "Save canceled";
-                    break;
-                case CAMERA_STATE.SAVE_INTERRUPTED:
-                    result = "Save interrupted";
-                    break;
-                case CAMERA_STATE.SAVE_TRUNCATING:
-                    result = "Save truncating";
-                    break;
-                case CAMERA_STATE.REVIEWING:
-                    result = "Reviewing";
-                    break;
-                case CAMERA_STATE.SELECTIVE_SAVING:
-                    result = "Selective saving";
-                    break;
-                default:
-                    result = "Logic error - unknown state";
-                    break;
-            }
-            return result;
+            return TextStateLookup.ContainsKey(state) ? TextStateLookup[state] : "Logic error - unknown state";
         }
 
         // Accepts dictionary to be posted to uri.
