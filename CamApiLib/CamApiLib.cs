@@ -68,12 +68,14 @@ namespace CamApi
         };
 
         private string camAddr = null;
+        private bool debug;
 
-        public CamApiLib(string address)
+        public CamApiLib(string address, bool debug = false)
         {
             camAddr = address;
-
-            Console.WriteLine(string.Format("CAMAPI HTTP initialized.  Talking to camera: {0}", this.camAddr));
+            this.debug = debug;
+            if (debug)
+                Console.WriteLine(string.Format("CAMAPI HTTP initialized.  Talking to camera: {0}", this.camAddr));
         }
 
         /**
@@ -99,9 +101,8 @@ namespace CamApi
 
             try
             {
-#if DEBUG
-                Console.WriteLine($"    Fetching: {url}");
-#endif
+                if (debug)
+                    Console.WriteLine($"    Fetching: {url}");
 
                 WebRequest request = WebRequest.Create(url);
                 WebResponse response = request.GetResponse();
@@ -114,6 +115,9 @@ namespace CamApi
                 Console.WriteLine($"ERROR: unable to fetch: {url}");
                 Console.WriteLine(ex.Message);
             }
+
+            if (debug)
+                Console.WriteLine($"        Response: {result}");
 
             return result;
         }
@@ -169,9 +173,8 @@ namespace CamApi
 
             try
             {
-#if DEBUG
-                Console.WriteLine($"    Posting: {url}");
-#endif
+                if (debug)
+                    Console.WriteLine($"    Posting: {url}");
 
                 WebRequest request = WebRequest.Create(url);
                 string jsonData = JsonConvert.SerializeObject(data);
@@ -191,9 +194,8 @@ namespace CamApi
 
                 result = reader.ReadToEnd();
 
-#if DEBUG                
-                Console.WriteLine(string.Format("    Response: {0}", result));
-#endif                
+                if (debug)
+                    Console.WriteLine(string.Format("    Response: {0}", result));
             }
             catch (Exception ex)
             {
@@ -403,7 +405,8 @@ namespace CamApi
             return result;
         }
 
-        public string GetLastSavedFilename(){
+        public string GetLastSavedFilename()
+        {
             // Returns filename used by the last successful video capture.
             // Note: API is deprecated, better to query file system directly.
             return FetchTarget("/get_last_saved_filename");

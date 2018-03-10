@@ -10,7 +10,8 @@ namespace CamApiCli
     {
         // Valid command line args
         private static IReadOnlyDictionary<string, string> validArgs = new Dictionary<string, string>(){
-            {"Address", "10.11.12.13"}
+            {"Address", "10.11.12.13"},
+            {"Debug", "0"}
         };
 
         private static IConfiguration config { get; set; }
@@ -47,9 +48,9 @@ namespace CamApiCli
         {
             if( !GetConfiguration(args) ) return;
 
-            var cli = new CamApiCli(config["Address"]);
+            var cli = new CamApiCli(config["Address"], config["debug"] == "1");
 
-            cli.TestBasicFunctionality();
+            cli.TestCameraFunctionality();
         }
     }
 }

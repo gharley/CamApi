@@ -77,7 +77,7 @@ namespace CamApiCli
             api.WaitForTransition("Waiting for save to complete", CAMERA_STATE.SAVING, 30);
 
             api.ExpectRunningState();
-            Console.WriteLine(string.Format(message, api.GetLastSavedFilename()));
+            Console.WriteLine(string.Format("    " + message, api.GetLastSavedFilename()));
         }
     }
 }
