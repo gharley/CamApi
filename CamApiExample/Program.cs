@@ -48,9 +48,9 @@ namespace CamApiExample
         {
             if( !GetConfiguration(args) ) return;
 
-            var cli = new CamApiExample(config["Address"], config["debug"] == "1");
+            var camExample = new CamApiExample(config["Address"], config["debug"] == "1");
 
-            cli.TestCameraFunctionality();
+            camExample.TestCameraFunctionality();
         }
     }
 }
