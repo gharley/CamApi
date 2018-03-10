@@ -1,3 +1,5 @@
+using System.Collections.Generic;
+
 namespace CamApi
 {
     public enum CAMERA_STATE
@@ -28,4 +30,6 @@ namespace CamApi
     {
         OKAY = 1, INVALID_STATE, STORAGE_ERROR, CODE_OUT_OF_DATE, INVALID_PARAMETER
     };
+
+    public class CamDictionary : Dictionary<string, object>{}
 }

@@ -156,13 +156,13 @@ namespace CamApi
           {CAMERA_STATE.UNCONFIGURED, "Unconfigured"},
         };
 
-        private string GetTextState(CAMERA_STATE state)
+        public string GetTextState(CAMERA_STATE state)
         {
             return TextStateLookup.ContainsKey(state) ? TextStateLookup[state] : "Logic error - unknown state";
         }
 
         // Accepts dictionary to be posted to uri.
-        private string PostTarget(string target, Dictionary<string, object> data)
+        private string PostTarget(string target, CamDictionary data)
         {
             string result = null;
             string url = "http://" + this.camAddr + target;
@@ -241,7 +241,7 @@ namespace CamApi
             return (state == desiredState);
         }
 
-        public Dictionary<string, object> ConfigureCamera(Dictionary<string, Object> settings)
+        public CamDictionary ConfigureCamera(CamDictionary settings)
         {
             // Configure camera using the requested_settings dictionary.
             // Calculates a camera configuration based on the requested values, camera limitations, and
@@ -249,7 +249,7 @@ namespace CamApi
             // return: dictionary of requested setting values along with the allowed values.
             string jdata = PostTarget("/configure_camera", settings);
 
-            return (Dictionary<string, object>)JsonConvert.DeserializeObject(jdata, typeof(Dictionary<string, object>));
+            return (CamDictionary)JsonConvert.DeserializeObject(jdata, typeof(CamDictionary));
         }
 
         public void DeleteAllFavorites()
@@ -335,38 +335,38 @@ namespace CamApi
             return (CAMAPI_STATUS)JsonConvert.DeserializeObject(jdata, typeof(CAMAPI_STATUS));
         }
 
-        public Dictionary<string, object> GetCamInfo()
+        public CamDictionary GetCamInfo()
         {
             // Returns a dictionary of all the unchanging camera information.
             string jdata = FetchTarget("/get_caminfo");
 
-            return (Dictionary<string, object>)JsonConvert.DeserializeObject(jdata, typeof(Dictionary<string, object>));
+            return (CamDictionary)JsonConvert.DeserializeObject(jdata, typeof(CamDictionary));
         }
 
-        public Dictionary<string, object> GetCamStatus()
+        public CamDictionary GetCamStatus()
         {
             // Returns camera status dictionary.
             string jdata = FetchTarget("/get_camstatus");
 
-            return (Dictionary<string, object>)JsonConvert.DeserializeObject(jdata, typeof(Dictionary<string, object>));
+            return (CamDictionary)JsonConvert.DeserializeObject(jdata, typeof(CamDictionary));
         }
 
-        public Dictionary<string, object> GetCurrentSettings()
+        public CamDictionary GetCurrentSettings()
         {
             // Returns dictionary containing the current requested camera settings that are being used if camera is active,
             // otherwise None. Dictionary may contain other values - do not count on them being present in future versions of CAMAPI.
             // Defined camera settings documented at http://wiki.edgertronic.com/index.php/Software_developers_kit
             string jdata = FetchTarget("/get_current_settings");
 
-            return (Dictionary<string, object>)JsonConvert.DeserializeObject(jdata, typeof(Dictionary<string, object>));
+            return (CamDictionary)JsonConvert.DeserializeObject(jdata, typeof(CamDictionary));
         }
 
-        public Dictionary<string, object> GetFavorite(string id)
+        public CamDictionary GetFavorite(string id)
         {
             // returns: dictionary containing previously saved favorite settings with identifier id.
             string jdata = FetchTarget($"/get_favorite?id={id}");
 
-            return (Dictionary<string, object>)JsonConvert.DeserializeObject(jdata, typeof(Dictionary<string, object>));
+            return (CamDictionary)JsonConvert.DeserializeObject(jdata, typeof(CamDictionary));
         }
 
         public List<string> GetFavoriteIds()
@@ -417,7 +417,7 @@ namespace CamApi
             return (long)JsonConvert.DeserializeObject(jdata);
         }
 
-        public Dictionary<string, object> GetSavedSettins(string id = null)
+        public CamDictionary GetSavedSettins(string id = null)
         {
             // Returns dictionary containing last successfully saved settings or
             // default camera settings otherwise.  If id is specified, returns the
@@ -432,7 +432,7 @@ namespace CamApi
 
             string jdata = FetchTarget(url);
 
-            return (Dictionary<string, object>)JsonConvert.DeserializeObject(jdata, typeof(Dictionary<string, object>));
+            return (CamDictionary)JsonConvert.DeserializeObject(jdata, typeof(CamDictionary));
         }
 
         public string GetStatusString()
@@ -494,7 +494,7 @@ namespace CamApi
             return (string)JsonConvert.DeserializeObject(jdata);
         }
 
-        public Dictionary<string, object> GetStorageInfo(string device = null)
+        public CamDictionary GetStorageInfo(string device = null)
         {
             // Returns a dictonary containing information about the storage device , or about active storage device if device is not set
             string url = "/get_storage_info";
@@ -506,7 +506,7 @@ namespace CamApi
 
             string jdata = FetchTarget(url);
 
-            return (Dictionary<string, object>)JsonConvert.DeserializeObject(jdata, typeof(Dictionary<string, object>));
+            return (CamDictionary)JsonConvert.DeserializeObject(jdata, typeof(CamDictionary));
         }
 
         public CAMAPI_STATUS Mount(string device = null)
@@ -523,7 +523,7 @@ namespace CamApi
             return (CAMAPI_STATUS)JsonConvert.DeserializeObject(jdata, typeof(CAMAPI_STATUS));
         }
 
-        public void PrintSettings(Dictionary<string, object> settings, string keyPrefix, string prefix)
+        public void PrintSettings(CamDictionary settings, string keyPrefix, string prefix)
         {
             PrintSettingLine(prefix + "Sensitivity", settings[keyPrefix + "iso"]);
 
@@ -542,7 +542,7 @@ namespace CamApi
             PrintSettingLine(prefix + "Pre-trigger", settings[keyPrefix + "pretrigger"]);
         }
 
-        public CAMAPI_STATUS Run(Dictionary<string, object> settings)
+        public CAMAPI_STATUS Run(CamDictionary settings)
         {
             // Reconfigures the camara to use the best match values based on the requested values,
             // calibrates the camera using those values, and starts capturing the pre-trigger video frames.
@@ -565,7 +565,7 @@ namespace CamApi
             return (CAMAPI_STATUS)JsonConvert.DeserializeObject(jdata, typeof(CAMAPI_STATUS));
         }
 
-        public CAMAPI_STATUS SaveFavorite(Dictionary<string, object> settings)
+        public CAMAPI_STATUS SaveFavorite(CamDictionary settings)
         {
             // Save a set of camera settings.  The supplied settings must have an id key set to a valid value.
             // returns: CAMAPI_STATUS.OKAY, CAMAPI_STATUS.INVALID_PARAMETER, or CAMAPI_STATUS.STORAGE_ERROR
@@ -589,7 +589,7 @@ namespace CamApi
             return (CAMAPI_STATUS)JsonConvert.DeserializeObject(jdata, typeof(CAMAPI_STATUS));
         }
 
-        public CAMAPI_STATUS SelectiveSave(Dictionary<string, object> parameters)
+        public CAMAPI_STATUS SelectiveSave(CamDictionary parameters)
         {
             // Save portion of video previously stored in DDR3 memory.  Captured videos in DDR3 are not modified.
             // :param parameters['buffer_index']: which multishot buffer to save.
