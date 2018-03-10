@@ -24,107 +24,6 @@ namespace CamApiCli
             }
         }
 
-        private void FavoritesTest()
-        {
-            api.DeleteAllFavorites();
-            Console.WriteLine($"Number of favorite IDs (should be 0): {api.GetFavoriteIds().Count}");
-
-            var settings = api.GetCurrentSettings();
-
-            settings["id"] = 5;
-            settings["duration"] = 2;
-            settings["notes"] = "Favorite settings stored in ID slot 5";
-
-            api.SaveFavorite(settings);
-            Console.WriteLine("Saved settings in ID slot 5");
-
-            settings = api.GetCurrentSettings();
-
-            settings["id"] = 3;
-            settings["duration"] = 4;
-            settings["notes"] = "Favorite settings stored in ID slot 3";
-
-            api.SaveFavorite(settings);
-            Console.WriteLine("Saved settings in ID slot 3");
-
-            Console.WriteLine($"Saved favorite ID list: {string.Join(", ", api.GetFavoriteIds())}");
-
-            settings = api.GetFavorite("5");
-            var allowedSettings = api.ConfigureCamera(settings);
-
-            api.Run(allowedSettings);
-            Console.WriteLine("Retreived favorite settings 5 and configured the camera using those settings");
-
-            api.DeleteFavorite("3");
-            Console.WriteLine("Deleted previously save favorite in ID slot 3");
-            Console.WriteLine($"Saved favorite ID list: {string.Join(", ", api.GetFavoriteIds())}");
-        }
-
-        private void CaptureCancelPostFill(CamDictionary allowedSettings)
-        {
-            // Example showing full pre-trigger buffer fill, trigger, cancel while post-trigger buffer is filling
-            RunCamera(allowedSettings, "Fill pre-trigger buffer, trigger, cancel while post-trigger buffer is filling");
-
-            api.WaitForTransition("Waiting for pre-trigger buffer to fill", CAMERA_STATE.RUNNING, 10);
-            api.ExpectState(CAMERA_STATE.RUNNING_PRETRIGGER_FULL);
-
-            TriggerCamera("Camera triggered, starting to fill post-trigger buffer");
-
-            Console.WriteLine("    Canceling trigger while post-trigger buffer is filling");
-            Console.WriteLine($"        {api.GetStatusString()}");
-
-            api.Cancel();
-            api.WaitForTransition("Waiting for cancel to be processed", CAMERA_STATE.TRIGGERED, 10);
-
-            api.ExpectRunningState();
-        }
-
-        private void CaptureSaveStop(CamDictionary allowedSettings)
-        {
-            // Example showing partial pre-trigger buffer fill, trigger, save video, then truncate save leaving playable video file
-            RunCamera(allowedSettings, "Partial pre-trigger buffer fill, trigger, start video save, then truncate save leaving playable video file");
-
-            api.WaitForTransition("    Letting pre-trigger buffer partially fill", CAMERA_STATE.RUNNING, 10);
-            Thread.Sleep(4000);
-            Console.WriteLine($"        {api.GetStatusString()}");
-
-            TriggerCamera("Camera triggered, starting to fill post-trigger buffer");
-
-            Console.WriteLine($"    Percentage pre-trigger buffer filled before trigger: {api.GetPretriggerFillLevel()}");
-
-            api.WaitForTransition("Waiting for post-trigger buffer to fill", CAMERA_STATE.TRIGGERED, 10);
-            api.ExpectState(CAMERA_STATE.SAVING);
-
-            Thread.Sleep(1000);
-            Console.WriteLine($"    Truncating save before complete, video file still playable");
-            Console.WriteLine($"        {api.GetStatusString()}");
-
-            api.SaveStop();
-            api.WaitForTransition("Waiting for save to finish", CAMERA_STATE.SAVING, 10);
-            api.WaitForTransition("Waiting for post-trigger buffer to fill", CAMERA_STATE.SAVE_TRUNCATING, 10);
-
-            api.ExpectRunningState();
-        }
-
-        private void CaptureVideo(CamDictionary allowedSettings, string baseFilename = null)
-        {
-            // Example showing full pre-trigger buffer fill, trigger, save video capture process
-            RunCamera(allowedSettings, "Partial pre-trigger buffer fill, trigger, save video capture process");
-
-            api.WaitForTransition("    Waiting for pre-trigger buffer to fill", CAMERA_STATE.RUNNING, 10);
-            api.ExpectState(CAMERA_STATE.RUNNING_PRETRIGGER_FULL);
-
-            TriggerCamera("Camera triggered, filling post-trigger buffer");
-
-            Console.WriteLine($"    Percentage pre-trigger buffer filled before trigger: {api.GetPretriggerFillLevel()}");
-
-            api.WaitForTransition("Waiting for post-trigger buffer to fill", CAMERA_STATE.TRIGGERED, 10);
-            api.ExpectState(CAMERA_STATE.SAVING);
-            api.WaitForTransition("Waiting for save to complete", CAMERA_STATE.SAVING, 30);
-
-            api.ExpectRunningState();
-        }
-
         private void MultishotCaptureTests(bool TestDiscardingUnsavedVideos = false, bool TestCancellingPostTriggerFill = false)
         {
             var multishots = 3;
@@ -355,26 +254,29 @@ namespace CamApiCli
                 Console.WriteLine("Allowed camera settings:");
                 api.PrintSettings(settings, "", "    ");
 
-                FavoritesTest();
+                // var favoritesTests = new FavoritesTests(api);
+                // favoritesTests.Run();
 
-                CaptureCancelPostFill(settings);
-                CaptureSaveStop(settings);
+                var captureTests = new CaptureTests(api);
 
-                CaptureVideo(settings);
-                Console.WriteLine($"Last saved file: {api.GetLastSavedFilename()}");
+                // captureTests.RunCaptureCancelPostFill(settings);
+                // captureTests.RunCaptureSaveStop(settings);
+                captureTests.RunCaptureVideo(settings, "Last saved file: {0}");
+
+                // Console.WriteLine($"Last saved file: {api.GetLastSavedFilename()}");
 
                 requestedSettings["duration"] = 1;
                 settings = api.ConfigureCamera(requestedSettings);
 
-                CaptureVideo(settings, "/tmp/hcamapi_tmp_test");
-                Console.WriteLine($"    Last saved file - should be '/tmp/hcamapi_tmp_test': {api.GetLastSavedFilename()}");
+                captureTests.RunCaptureVideo(settings, "    Last saved file - should be '/tmp/hcamapi_tmp_test': {0}", "/tmp/hcamapi_tmp_test");
+                // Console.WriteLine($"    Last saved file - should be '/tmp/hcamapi_tmp_test': {api.GetLastSavedFilename()}");
 
-                CaptureVideo(settings, "hcamapi_test");
-                Console.WriteLine($"    Last saved file - should be 'hcamapi_test': {api.GetLastSavedFilename()}");
+                captureTests.RunCaptureVideo(settings, "    Last saved file - should be 'hcamapi_test': {0}", "hcamapi_test");
+                // Console.WriteLine($"    Last saved file - should be 'hcamapi_test': {api.GetLastSavedFilename()}");
 
-                MultishotCaptureTests();
-                MultishotCaptureTests(true);
-                MultishotCaptureTests(TestCancellingPostTriggerFill: true);
+                // MultishotCaptureTests();
+                // MultishotCaptureTests(true);
+                // MultishotCaptureTests(TestCancellingPostTriggerFill: true);
             }
             catch (Exception ex)
             {
