@@ -2,6 +2,7 @@ using System;
 using System.Threading;
 
 using CamApi;
+using CamApiCliExtentions;
 
 namespace CamApiCli
 {
@@ -57,8 +58,8 @@ namespace CamApiCli
 
                 api.ExpectState(CAMERA_STATE.SAVING);
 
-                var status = api.GetCamStatus();
-                var capturedBuffers = (long)status["captured_buffers"];
+                var camStatus = api.GetCamStatus();
+                var capturedBuffers = (long)camStatus["captured_buffers"];
 
                 Console.WriteLine($"        Captured buffers: {capturedBuffers}");
 
@@ -72,8 +73,8 @@ namespace CamApiCli
                 {
                     // camera stays in the save state the entire time the set of captured videos are saved
                     // monitor progress by using the active buffer and save complete level
-                    status = api.GetCamStatus();
-                    var state = (CAMERA_STATE)Enum.ToObject(typeof(CAMERA_STATE), status["state"]);
+                    camStatus = api.GetCamStatus();
+                    var state = (CAMERA_STATE)camStatus["state"];
 
                     if (state != CAMERA_STATE.SAVING)
                     {
@@ -81,9 +82,9 @@ namespace CamApiCli
                         break;
                     }
 
-                    var activeBuffer = (long)status["active_buffer"];
+                    var activeBuffer = (long)camStatus["active_buffer"];
 
-                    Console.WriteLine($"        Saving buffer {activeBuffer}/{expectedVideoCount} progress {status["level"]} ({maxWait})");
+                    Console.WriteLine($"        Saving buffer {activeBuffer}/{expectedVideoCount} progress {camStatus["level"]} ({maxWait})");
                     if (expectedBuffer + 1 == activeBuffer) break;
 
                     if (discardAfterVideo > 0 && discardAfterVideo + 1 == activeBuffer)
@@ -142,8 +143,8 @@ namespace CamApiCli
 
             for (int x = 0; x < multishots; x++)
             {
-                var status = api.GetCamStatus();
-                var activeBuffer = (long)status["active_buffer"];
+                var camStatus = api.GetCamStatus();
+                var activeBuffer = (long)camStatus["active_buffer"];
 
                 Console.WriteLine($"    Multishot buffer in use: {activeBuffer}");
                 MultishotCaptureVideo(CAMERA_STATE.RUNNING, activeBuffer == cancelPostTriggerFillAfter);

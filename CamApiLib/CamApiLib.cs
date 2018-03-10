@@ -6,6 +6,7 @@ using System.Net;
 using System.Threading;
 
 using Newtonsoft.Json;
+using CamApiExtensions;
 
 namespace CamApi
 {
@@ -160,11 +161,6 @@ namespace CamApi
           {CAMERA_STATE.UNCONFIGURED, "Unconfigured"},
         };
 
-        public string GetTextState(CAMERA_STATE state)
-        {
-            return TextStateLookup.ContainsKey(state) ? TextStateLookup[state] : "Logic error - unknown state";
-        }
-
         // Accepts dictionary to be posted to uri.
         private string PostTarget(string target, CamDictionary data)
         {
@@ -225,6 +221,9 @@ namespace CamApi
             return string.Format("{0:0.0} TB", num);
         }
 
+        /******************************************************************************
+                Public API methods
+        ******************************************************************************/
         public CAMAPI_STATUS Cancel()
         {
             // Cancel filling post-trigger buffer or save if either is occurring.
@@ -238,7 +237,7 @@ namespace CamApi
         {
             // Returns True if camera is in desired_state.
             var camStatus = GetCamStatus();
-            var state = (CAMERA_STATE)Enum.ToObject(typeof(CAMERA_STATE), camStatus["state"]);
+            var state = (CAMERA_STATE)camStatus["state"];
 
             return (state == desiredState);
         }
@@ -289,7 +288,7 @@ namespace CamApi
             }
 
             var camStatus = GetCamStatus();
-            var state = (CAMERA_STATE)Enum.ToObject(typeof(CAMERA_STATE), camStatus["state"]);
+            var state = (CAMERA_STATE)camStatus["state"];
 
             if (state != CAMERA_STATE.RUNNING && state != CAMERA_STATE.RUNNING_PRETRIGGER_FULL)
             {
@@ -301,7 +300,7 @@ namespace CamApi
         public void ExpectState(CAMERA_STATE anticipatedState)
         {
             var camStatus = GetCamStatus();
-            var state = (CAMERA_STATE)Enum.ToObject(typeof(CAMERA_STATE), camStatus["state"]);
+            var state = (CAMERA_STATE)camStatus["state"];
 
             if (state != anticipatedState)
             {
@@ -324,18 +323,31 @@ namespace CamApi
             return (CAMAPI_STATUS)JsonConvert.DeserializeObject(jdata, typeof(CAMAPI_STATUS));
         }
 
-        public CAMAPI_STATUS FormatStorage(string device = null)
+        public List<string> FetchRemoteDirectoryListing(string path = null)
         {
-            // Formats active storage device is dev is not specified.  Use dev="USB" or dev="SD" to specify device to be formatted.
-            // return: outcome, either CAMAPI.STATUS_OKAY or CAMAPI_STATUS.STORAGE_ERROR
-            string url = "/format";
+            // Returns a list of filenames.  If path is None, then the list is the files in the video directories
+            // stored on the active storage device otherwise returns list of files in the named path.
+            string url = "/dir_listing";
 
-            if (device != null) url += $"?device={device}";
+            if (!string.IsNullOrEmpty(path)) url += $"?{path}";
 
             string jdata = FetchTarget(url);
 
-            return (CAMAPI_STATUS)JsonConvert.DeserializeObject(jdata, typeof(CAMAPI_STATUS));
+            return (List<string>)JsonConvert.DeserializeObject(jdata, typeof(List<string>));
         }
+
+        // public CAMAPI_STATUS FormatStorage(string device = null)
+        // {
+        //     // Formats active storage device is dev is not specified.  Use dev="USB" or dev="SD" to specify device to be formatted.
+        //     // return: outcome, either CAMAPI.STATUS_OKAY or CAMAPI_STATUS.STORAGE_ERROR
+        //     string url = "/format";
+
+        //     if (device != null) url += $"?device={device}";
+
+        //     string jdata = FetchTarget(url);
+
+        //     return (CAMAPI_STATUS)JsonConvert.DeserializeObject(jdata, typeof(CAMAPI_STATUS));
+        // }
 
         public CamDictionary GetCamInfo()
         {
@@ -349,8 +361,11 @@ namespace CamApi
         {
             // Returns camera status dictionary.
             string jdata = FetchTarget("/get_camstatus");
+            CamDictionary result = (CamDictionary)JsonConvert.DeserializeObject(jdata, typeof(CamDictionary));
 
-            return (CamDictionary)JsonConvert.DeserializeObject(jdata, typeof(CamDictionary));
+            result["state"] = (CAMERA_STATE)Enum.ToObject(typeof(CAMERA_STATE), result["state"]);
+
+            return result;
         }
 
         public CamDictionary GetCurrentSettings()
@@ -443,7 +458,7 @@ namespace CamApi
             // Returns human readable string of the current device status.  Text format will change in the future.
             string result;
             var camStatus = GetCamStatus();
-            var state = (CAMERA_STATE)Enum.ToObject(typeof(CAMERA_STATE), camStatus["state"]);
+            var state = (CAMERA_STATE)camStatus["state"];
 
             result = $"State: {GetTextState(state)}; Level: {camStatus["level"]}; " +
               $"Flags: {GetTextFlags((long)camStatus["flags"])}; Empty: {SizeofFmt((double)((long)camStatus["available_space"]))}";
@@ -510,6 +525,11 @@ namespace CamApi
             string jdata = FetchTarget(url);
 
             return (CamDictionary)JsonConvert.DeserializeObject(jdata, typeof(CamDictionary));
+        }
+
+        public string GetTextState(CAMERA_STATE state)
+        {
+            return TextStateLookup.ContainsKey(state) ? TextStateLookup[state] : "Logic error - unknown state";
         }
 
         public CAMAPI_STATUS Mount(string device = null)
@@ -605,6 +625,19 @@ namespace CamApi
             return (CAMAPI_STATUS)JsonConvert.DeserializeObject(jdata, typeof(CAMAPI_STATUS));
         }
 
+        public long SyncTime(DateTime? setTime = null)
+        {
+            // Returns the camera's current time in seconds from Jan 1, 1970 (called the Unix epoch).
+            // If set_time is specified (as C# DateTime), then the camera's hardware real time clock is first set.
+            string url = "/sync_time";
+
+            if (setTime != null) url += $"?{setTime.ToUnixTime()}";
+
+            string jdata = FetchTarget(url);
+
+            return long.Parse(jdata);
+        }
+
         public CAMAPI_STATUS Trigger(string baseFilename = null)
         {
             // Stops filling the pre-trigger portion buffer and starts filling the post-trigger portion of the buffer.
@@ -656,7 +689,7 @@ namespace CamApi
             }
 
             var camStatus = GetCamStatus();
-            var state = (CAMERA_STATE)Enum.ToObject(typeof(CAMERA_STATE), camStatus["state"]);
+            var state = (CAMERA_STATE)camStatus["state"];
 
             Console.WriteLine($"        Transition complete - new state: {GetTextState(state)}");
         }
