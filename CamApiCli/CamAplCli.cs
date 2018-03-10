@@ -260,9 +260,9 @@ namespace CamApiCli
                     Thread.Sleep(1000);
                     maxWait--;
                 }
-
-                api.ExpectRunningState();
             }
+
+            api.ExpectRunningState();
         }
 
         private void RunCamera(CamDictionary allowedSettings, string message)
