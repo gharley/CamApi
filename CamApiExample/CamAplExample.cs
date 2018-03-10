@@ -5,13 +5,13 @@ using System.Threading;
 using CamApi;
 using CamApiExtensions;
 
-namespace CamApiCli
+namespace CamApiExample
 {
-    public class CamApiCli
+    public class CamApiExample
     {
         private CamApiLib api;
 
-        public CamApiCli(string address, bool debug = false)
+        public CamApiExample(string address, bool debug = false)
         {
             api = new CamApiLib(address, debug);
         }
@@ -103,6 +103,10 @@ namespace CamApiCli
                 long epoch = api.SyncTime();
 
                 Console.WriteLine($"Camera hardware real time clock (epoch {epoch}): {epoch.FromUnixTime()} UTC");
+
+                string lastVideoFilename = api.GetLastSavedFilename();
+
+                api.DisplayRemoteFile($"{lastVideoFilename.Substring(1, lastVideoFilename.Length - 6)}.txt");
            }
             catch (Exception ex)
             {

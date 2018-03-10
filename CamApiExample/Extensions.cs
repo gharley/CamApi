@@ -2,11 +2,11 @@ using System;
 using System.Threading;
 
 using CamApi;
-using CamApiCli;
+using CamApiExample;
 
-namespace CamApiCliExtentions
+namespace CamApiExampleExtentions
 {
-    public static class CliExtensions
+    public static class ExampleExtensions
     {
         private static void DoRunCamera(CamApiLib api, CamDictionary allowedSettings, string message)
         {

@@ -2,7 +2,7 @@ using System;
 
 using CamApi;
 
-namespace CamApiCli
+namespace CamApiExample
 {
     class FavoritesTests
     {

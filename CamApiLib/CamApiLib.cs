@@ -274,6 +274,26 @@ namespace CamApi
             return (CAMAPI_STATUS)JsonConvert.DeserializeObject(jdata, typeof(CAMAPI_STATUS));
         }
 
+/*
+    def display_remote_file(self, remote_fqn):
+        """
+        Downloads file and prints the content on stdout.  Downloads using the remote
+        fully qualified name.
+        """
+        url = 'http://' + self.cam_addr + '/static' + remote_fqn
+        logging.debug("Fetching remote file using URL: %s" % url)
+        response = urllib2.urlopen(url)
+        print response.read()
+        response.close()
+ */
+        public void DisplayRemoteFile(string remoteFQN){
+            // Downloads file and prints the content on stdout.  Downloads using the remote
+            // fully qualified name.
+            string data = FetchTarget($"/static{remoteFQN}");
+
+            Console.WriteLine(data);
+        }
+
         public void ExpectRunningState()
         {
             // With smart calibrate, the camera may or may not be in the calibrating state.

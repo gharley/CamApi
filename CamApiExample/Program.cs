@@ -4,7 +4,7 @@ using System.Linq;
 using Microsoft.Extensions.Configuration;
 using CamApi;
 
-namespace CamApiCli
+namespace CamApiExample
 {
     class Program
     {
@@ -48,7 +48,7 @@ namespace CamApiCli
         {
             if( !GetConfiguration(args) ) return;
 
-            var cli = new CamApiCli(config["Address"], config["debug"] == "1");
+            var cli = new CamApiExample(config["Address"], config["debug"] == "1");
 
             cli.TestCameraFunctionality();
         }

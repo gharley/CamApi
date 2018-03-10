@@ -2,9 +2,9 @@ using System;
 using System.Threading;
 
 using CamApi;
-using CamApiCliExtentions;
+using CamApiExampleExtentions;
 
-namespace CamApiCli
+namespace CamApiExample
 {
     public class MultiCaptureTests
     {

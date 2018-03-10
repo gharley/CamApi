@@ -3,7 +3,7 @@ Microsoft Visual Studio Solution File, Format Version 12.00
 # Visual Studio 15
 VisualStudioVersion = 15.0.26124.0
 MinimumVisualStudioVersion = 15.0.26124.0
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "CamApiCli", "CamApiCli\CamApiCli.csproj", "{FBBADFC3-BD11-4409-A04D-170E11C55E56}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "CamApiExample", "CamApiExample\CamApiExample.csproj", "{FBBADFC3-BD11-4409-A04D-170E11C55E56}"
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "CamApiLib", "CamApiLib\CamApiLib.csproj", "{FA2860BC-1BEC-4992-8DCF-7A9194124210}"
 EndProject
