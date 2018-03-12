@@ -26,10 +26,9 @@ namespace CamApi
     GENLOCK_CONFIG_ERROR = 0x800000
   }
 
-  public enum CAMAPI_STATUS
-  {
-    OKAY = 1, INVALID_STATE, STORAGE_ERROR, CODE_OUT_OF_DATE, INVALID_PARAMETER
-  };
+  public enum CAMAPI_STATUS { OKAY = 1, INVALID_STATE, STORAGE_ERROR, CODE_OUT_OF_DATE, INVALID_PARAMETER };
+
+  public enum GENLOCK { OFF, MASTER, SLAVE, EXT };
 
   public class CamDictionary : Dictionary<string, object> { }
 
@@ -102,16 +101,19 @@ namespace CamApi
     };
 
     public static List<string> METADATA_ON_OFF_KEYS = new List<string>(){
-        "subsample", 
-        "force_monochrome", 
-        "overlay_notes", 
+        "subsample",
+        "force_monochrome",
+        "overlay_notes",
         "overlay_logo",
-        "overlay_settings", 
-        "overlay_frame_number", 
+        "overlay_settings",
+        "overlay_frame_number",
         "trigger_debounce",
-        "gamma_correction", 
+        "gamma_correction",
         "review"
     };
-    
+
+    public static List<string> METADATA_TRUE_FALSE_KEYS = new List<string>(){
+        "genlock_locked"
+    };
   }
 }

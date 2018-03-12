@@ -304,7 +304,7 @@ namespace CamApi
             part of CAMAPI, but are commonly used in C# code that uses CamApiLib
     ******************************************************************************/
 
-    private void ParseMetadata(string metadataText)
+    private CamDictionary ParseMetadata(string metadataText)
     {
       CamDictionary metadata = new CamDictionary();
       string[] lines = metadataText.Split('\n');
@@ -317,108 +317,109 @@ namespace CamApi
 
         if (string.IsNullOrEmpty(line) || line.StartsWith("#")) continue;
 
-        string[] kvu = line.Split('\t');
-
-        if (kvu.Length == 2)
+        try
         {
-          kvu[2] = "";
+          string[] kvu = line.Split('\t');
+
+          if (kvu.Length == 2)
+          {
+            kvu[2] = "";
+          }
+
+          (string key, string value, string u) = (kvu[0], kvu[1].Trim(), kvu[2]);
+
+          if (string.IsNullOrEmpty(value))
+          {
+            if (debug) Console.WriteLine($"Ignoring line due to no value: {line}");
+            continue;
+          }
+
+          string realKey = CamConstants.METADATA_FILE_LOOKUP_TABLE[key];
+
+          if (CamConstants.METADATA_STRING_KEYS.Contains(realKey)) metadata[realKey] = value;
+          else if (CamConstants.METADATA_ON_OFF_KEYS.Contains(realKey)) metadata[realKey] = value.Equals("On") ? 1 : 0;
+          else if (CamConstants.METADATA_TRUE_FALSE_KEYS.Contains(realKey))
+          {
+            if (value.Equals("True") || value.Equals("False")) metadata[realKey] = value.Equals("True") ? 1 : 0;
+            else
+            {
+              Console.WriteLine($"Ignoring line due to invalid boolean: {line}");
+              continue;
+            }
+          }
+          else if (realKey.Equals("exposure"))
+          {
+            try
+            {
+              string[] values = value.Split('/');
+              (string num, string denom) = (values[0], values[1]);
+              metadata[realKey] = float.Parse(num) / float.Parse(denom);
+            }
+            catch (Exception)
+            {
+              metadata[realKey] = null;
+            }
+          }
+          else if (realKey.Equals("genlock"))
+          {
+            GENLOCK glValue;
+
+            switch (value)
+            {
+              case "Off":
+                glValue = GENLOCK.OFF;
+                break;
+              case "Master":
+                glValue = GENLOCK.MASTER;
+                break;
+              case "Slave":
+                glValue = GENLOCK.SLAVE;
+                break;
+              case "External":
+                glValue = GENLOCK.EXT;
+                break;
+              default:
+                throw new InvalidDataException($"Invalid GENLOCK value");
+            }
+
+            metadata[realKey] = glValue;
+          }
+          else if (realKey.Equals("pipeline") || realKey.Equals("notes")) metadata[realKey] = value;
+          else if (realKey.Equals("sensor_type"))
+          {
+            if (value.Equals("Monochrome")) metadata[realKey] = 1;
+            else if (value.Equals("Color")) metadata[realKey] = 0;
+            else
+            {
+              if (debug) Console.WriteLine($"Ignoring line due to invalid sensor type: {line}");
+              continue;
+            }
+          }
+          else metadata[realKey] = value;
+
+          if (metadata[realKey].Equals("None")) metadata[realKey] = null;
         }
-
-        (string key, string value, string u) = (kvu[0], kvu[1].Trim(), kvu[2]);
-
-        if (string.IsNullOrEmpty(value))
+        catch (Exception ex)
         {
-          if (debug) Console.WriteLine($"Ignoring line due to no value: {line}");
-          continue;
+            if(debug){
+                Console.WriteLine($"Ignoring line: {line}");
+                Console.WriteLine($"Exception - {ex.Message}");
+            }
         }
+      }
 
-        string realKey = CamConstants.METADATA_FILE_LOOKUP_TABLE[key];
-
-        if (CamConstants.METADATA_STRING_KEYS.Contains(realKey)) metadata[realKey] = value;
-        else if (CamConstants.METADATA_ON_OFF_KEYS.Contains(realKey)) metadata[realKey] = value == "On" ? 1 : 0;
+      if (metadata.Count == 0)
+      {
+        Console.WriteLine("Error: no extracted metadata values");
+        return null;
+      }
+      else
+      {
+        if (debug) Console.WriteLine($"Metadata values: {metadata}");
+        return metadata;
       }
     }
-    /*
-        def _parse_metadata(self, metadata_text):
-            _metadata = {}
-            logging.debug("Extracting metadata")
 
-            lcount = 0
-            for line in metadata_text.split('\n'):
-                li=line.lstrip()
-                # skip blank lines and lines that start with pound sign (#)
-                if len(li) == 0:
-                    continue
-                if not li.startswith("#"):
-                    lcount += 1
-                    try:
-                        if li.count('\t') == 2:
-                            (k, v, u) = li.split('\t')
-                        else:
-                            (k, v) = li.split('\t')
-                            u = ""
-                            v = v.strip()
-                        if len(v) == 0:
-                            logging.debug("Ignoring line due to no value: %s" % li)
-                            continue
-
-                        rk = self.METADATA_FILE_LOOKUP_TABLE.get(k)
-
-                        if rk in self.METADATA_STRING_KEYS:
-                            _metadata[rk] = v
-                        elif rk in self.METADATA_ON_OFF_KEYS:
-                            if v == 'On':
-                                _metadata[rk] = 1
-                            else:
-                                _metadata[rk] = 0
-                        elif rk in self.METADATA_TRUE_FALSE_KEYS:
-                            if v == 'True':
-                                _metadata[rk] = 1
-                            elif v == 'False':
-                                _metadata[rk] = 0
-                            else:
-                                logging.debug("Ignoring line due to invalid boolean: %s" % li)
-                        elif rk == 'exposure':
-                            try:
-                                (n,d) = v.split('/')
-                                _metadata[rk] = float(ast.literal_eval(n)) / float(ast.literal_eval(d))
-                            except:
-                                _metadata[rk] = None
-                        elif rk == 'genlock':
-                            if v == 'Off':
-                                _metadata[rk] = GENLOCK_OFF
-                            elif v == 'Master':
-                                _metadata[rk] = GENLOCK_MASTER
-                            elif v == 'Slave':
-                                _metadata[rk] = GENLOCK_SLAVE
-                            elif v == 'External':
-                                _metadata[rk] = GENLOCK_EXT
-                        elif rk == 'pipeline' or rk == 'notes':
-                            _metadata[rk] = v
-                        elif rk == 'sensor_type':
-                            if v == 'Monochrome':
-                                _metadata[rk] = 1
-                            elif v == 'Color':
-                                _metadata[rk] = 0
-                            else:
-                                 logging.debug("Ignoring line due to invalid sensor type: %s" % li)
-                        else:
-                            _metadata[rk] = ast.literal_eval(v)
-
-                        if _metadata.get(rk) and _metadata[rk] == 'None':
-                            _metadata[rk] = None
-
-                    except Exception, e:
-                        logging.debug("Ignoring line: %s" % li)
-                        logging.debug("Exception - %s" % str(e))
-
-            if lcount == 0:
-                logging.error("Error: no extracted metadata values")
-                return None
-            else:
-                logging.debug("Metadata values: %s" % repr(_metadata))
-                return _metadata
-     */
     /******************************************************************************
             Public API methods
     ******************************************************************************/
