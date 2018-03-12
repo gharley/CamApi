@@ -131,13 +131,6 @@ namespace CamApi
       return result;
     }
 
-    private void PrintSettingLine(string label, object value)
-    {
-      Console.Write(label + ": ");
-      if (value == null) Console.WriteLine("None");
-      else Console.WriteLine($"{value:g6}");
-    }
-
     private static string[] suffixes = { "bytes", "KB", "MB", "GB" };
     private string SizeofFmt(double num)
     {
@@ -154,6 +147,36 @@ namespace CamApi
             The following utility methods are not strictly part of CAMAPI
     ******************************************************************************/
 
+    public bool CheckState(CAMERA_STATE desiredState)
+    {
+      // Returns True if camera is in desired_state.
+      var camStatus = GetCamStatus();
+      var state = (CAMERA_STATE)camStatus["state"];
+
+      return (state == desiredState);
+    }
+
+    public void DeleteAllFavorites()
+    {
+      var ids = GetFavoriteIds();
+
+      foreach (var id in ids)
+      {
+        var result = DeleteFavorite(id);
+
+        Console.WriteLine($"result after delete: {result}");
+      }
+    }
+
+    public CAMAPI_STATUS DeleteFavorite(string id)
+    {
+      // Deletes a previously saved favorite using id to identify which favorite to delete
+      // returns: CAMAPI status
+      string jdata = FetchTarget($"/delete_favorite?id={id}");
+
+      return (CAMAPI_STATUS)JsonConvert.DeserializeObject(jdata, typeof(CAMAPI_STATUS));
+    }
+
     public void DisplayRemoteFile(string remoteFQN)
     {
       // Downloads file and prints the content on stdout.  Downloads using the remote
@@ -161,6 +184,41 @@ namespace CamApi
       string data = FetchTarget($"/static{remoteFQN}");
 
       Console.WriteLine(data);
+    }
+
+    public void ExpectRunningState()
+    {
+      // With smart calibrate, the camera may or may not be in the calibrating state.
+      // If calibrating, wait for caibration to complete before returning.
+      int timeout = 4;
+
+      while (CheckState(CAMERA_STATE.CALIBRATING) && timeout > 0)
+      {
+        timeout--;
+        Console.WriteLine($"    {GetStatusString()}");
+        Thread.Sleep(1000);
+      }
+
+      var camStatus = GetCamStatus();
+      var state = (CAMERA_STATE)camStatus["state"];
+
+      if (state != CAMERA_STATE.RUNNING && state != CAMERA_STATE.RUNNING_PRETRIGGER_FULL)
+      {
+        Console.WriteLine($"Camera not in running state: {GetTextState(state)}");
+        Environment.Exit(1);
+      }
+    }
+
+    public void ExpectState(CAMERA_STATE anticipatedState)
+    {
+      var camStatus = GetCamStatus();
+      var state = (CAMERA_STATE)camStatus["state"];
+
+      if (state != anticipatedState)
+      {
+        Console.WriteLine($"Camera not in expected state: anticipated {GetTextState(anticipatedState)} != {GetTextState(state)}");
+        Environment.Exit(1);
+      }
     }
 
     public List<string> FetchRemoteDirectoryListing(string path = null)
@@ -273,6 +331,32 @@ namespace CamApi
       return result;
     }
 
+    private void PrintSettingLine(string label, object value)
+    {
+      Console.Write(label + ": ");
+      if (value == null) Console.WriteLine("None");
+      else Console.WriteLine($"{value:g6}");
+    }
+
+    public void PrintSettings(CamDictionary settings, string keyPrefix, string prefix)
+    {
+      PrintSettingLine(prefix + "Sensitivity", settings[keyPrefix + "iso"]);
+
+      var exposure = (double)settings[keyPrefix + "exposure"];
+      if (exposure == 0) Console.WriteLine($"{prefix}Shutter: None");
+      else Console.WriteLine($"{prefix}Shutter: {1 / exposure:g6}");
+
+      PrintSettingLine(prefix + "Frame Rate", settings[keyPrefix + "frame_rate"]);
+      PrintSettingLine(prefix + "Horizontal", settings[keyPrefix + "horizontal"]);
+      PrintSettingLine(prefix + "Vertical", settings[keyPrefix + "vertical"]);
+
+      Console.Write($"{prefix}Sub-sampling: ");
+      Console.WriteLine((!settings.ContainsKey(keyPrefix + "subsample") || (long)settings[keyPrefix + "subsample"] == 0) ? "Off" : "On");
+
+      PrintSettingLine(prefix + "Duration", settings[keyPrefix + "duration"]);
+      PrintSettingLine(prefix + "Pre-trigger", settings[keyPrefix + "pretrigger"]);
+    }
+
     public void Reboot()
     {
       // Software reboot the camera.
@@ -299,10 +383,22 @@ namespace CamApi
       return long.Parse(jdata);
     }
 
-    /******************************************************************************
-            The following metadata file related utility methods are not strictly 
-            part of CAMAPI, but are commonly used in C# code that uses CamApiLib
-    ******************************************************************************/
+    public void WaitForTransition(string label, CAMERA_STATE currentState, int timeout)
+    {
+      Console.WriteLine($"    {label}");
+
+      while (CheckState(currentState) && timeout > 0)
+      {
+        timeout--;
+        Console.WriteLine($"        {GetStatusString()}");
+        Thread.Sleep(1000);
+      }
+
+      var camStatus = GetCamStatus();
+      var state = (CAMERA_STATE)camStatus["state"];
+
+      Console.WriteLine($"        Transition complete - new state: {GetTextState(state)}");
+    }
 
     /******************************************************************************
             Public API methods
@@ -316,15 +412,6 @@ namespace CamApi
       return (CAMAPI_STATUS)JsonConvert.DeserializeObject(jdata, typeof(CAMAPI_STATUS));
     }
 
-    public bool CheckState(CAMERA_STATE desiredState)
-    {
-      // Returns True if camera is in desired_state.
-      var camStatus = GetCamStatus();
-      var state = (CAMERA_STATE)camStatus["state"];
-
-      return (state == desiredState);
-    }
-
     public CamDictionary ConfigureCamera(CamDictionary settings)
     {
       // Configure camera using the requested_settings dictionary.
@@ -334,62 +421,6 @@ namespace CamApi
       string jdata = PostTarget("/configure_camera", settings);
 
       return (CamDictionary)JsonConvert.DeserializeObject(jdata, typeof(CamDictionary));
-    }
-
-    public void DeleteAllFavorites()
-    {
-      var ids = GetFavoriteIds();
-
-      foreach (var id in ids)
-      {
-        var result = DeleteFavorite(id);
-
-        Console.WriteLine($"result after delete: {result}");
-      }
-    }
-
-    public CAMAPI_STATUS DeleteFavorite(string id)
-    {
-      // Deletes a previously saved favorite using id to identify which favorite to delete
-      // returns: CAMAPI status
-      string jdata = FetchTarget($"/delete_favorite?id={id}");
-
-      return (CAMAPI_STATUS)JsonConvert.DeserializeObject(jdata, typeof(CAMAPI_STATUS));
-    }
-
-    public void ExpectRunningState()
-    {
-      // With smart calibrate, the camera may or may not be in the calibrating state.
-      // If calibrating, wait for caibration to complete before returning.
-      int timeout = 4;
-
-      while (CheckState(CAMERA_STATE.CALIBRATING) && timeout > 0)
-      {
-        timeout--;
-        Console.WriteLine($"    {GetStatusString()}");
-        Thread.Sleep(1000);
-      }
-
-      var camStatus = GetCamStatus();
-      var state = (CAMERA_STATE)camStatus["state"];
-
-      if (state != CAMERA_STATE.RUNNING && state != CAMERA_STATE.RUNNING_PRETRIGGER_FULL)
-      {
-        Console.WriteLine($"Camera not in running state: {GetTextState(state)}");
-        Environment.Exit(1);
-      }
-    }
-
-    public void ExpectState(CAMERA_STATE anticipatedState)
-    {
-      var camStatus = GetCamStatus();
-      var state = (CAMERA_STATE)camStatus["state"];
-
-      if (state != anticipatedState)
-      {
-        Console.WriteLine($"Camera not in expected state: anticipated {GetTextState(anticipatedState)} != {GetTextState(state)}");
-        Environment.Exit(1);
-      }
     }
 
     public CAMAPI_STATUS EraseAllFiles(string device = null)
@@ -466,7 +497,7 @@ namespace CamApi
       return (long)JsonConvert.DeserializeObject(jdata);
     }
 
-    public CamDictionary GetSavedSettins(string id = null)
+    public CamDictionary GetSavedSettings(string id = null)
     {
       // Returns dictionary containing last successfully saved settings or
       // default camera settings otherwise.  If id is specified, returns the
@@ -519,25 +550,6 @@ namespace CamApi
       string jdata = FetchTarget(url);
 
       return (CAMAPI_STATUS)JsonConvert.DeserializeObject(jdata, typeof(CAMAPI_STATUS));
-    }
-
-    public void PrintSettings(CamDictionary settings, string keyPrefix, string prefix)
-    {
-      PrintSettingLine(prefix + "Sensitivity", settings[keyPrefix + "iso"]);
-
-      var exposure = (double)settings[keyPrefix + "exposure"];
-      if (exposure == 0) Console.WriteLine($"{prefix}Shutter: None");
-      else Console.WriteLine($"{prefix}Shutter: {1 / exposure:g6}");
-
-      PrintSettingLine(prefix + "Frame Rate", settings[keyPrefix + "frame_rate"]);
-      PrintSettingLine(prefix + "Horizontal", settings[keyPrefix + "horizontal"]);
-      PrintSettingLine(prefix + "Vertical", settings[keyPrefix + "vertical"]);
-
-      Console.Write($"{prefix}Sub-sampling: ");
-      Console.WriteLine((!settings.ContainsKey(keyPrefix + "subsample") || (long)settings[keyPrefix + "subsample"] == 0) ? "Off" : "On");
-
-      PrintSettingLine(prefix + "Duration", settings[keyPrefix + "duration"]);
-      PrintSettingLine(prefix + "Pre-trigger", settings[keyPrefix + "pretrigger"]);
     }
 
     public CAMAPI_STATUS Run(CamDictionary settings)
@@ -637,23 +649,6 @@ namespace CamApi
       string jdata = FetchTarget(url);
 
       return (CAMAPI_STATUS)JsonConvert.DeserializeObject(jdata, typeof(CAMAPI_STATUS));
-    }
-
-    public void WaitForTransition(string label, CAMERA_STATE currentState, int timeout)
-    {
-      Console.WriteLine($"    {label}");
-
-      while (CheckState(currentState) && timeout > 0)
-      {
-        timeout--;
-        Console.WriteLine($"        {GetStatusString()}");
-        Thread.Sleep(1000);
-      }
-
-      var camStatus = GetCamStatus();
-      var state = (CAMERA_STATE)camStatus["state"];
-
-      Console.WriteLine($"        Transition complete - new state: {GetTextState(state)}");
     }
   }
 }
