@@ -1,5 +1,6 @@
 using System;
 using System.Threading;
+using Newtonsoft.Json;
 
 using CamApi;
 using CamApiExampleExtentions;
@@ -48,7 +49,7 @@ namespace CamApiExample
 
             api.ExpectState(CAMERA_STATE.RUNNING);
 
-            api.Save();
+            Save();
             Thread.Sleep(1000);
 
             for (var x = 0; x < expectedVideoCount; x++)
@@ -153,5 +154,16 @@ namespace CamApiExample
             if (TestCancellingPostTriggerFill) multishots = 1;
             MultiShotSaveVideos(multishots, discardAfter, 30);
         }
+
+    public CAMAPI_STATUS Save()
+    {
+      // Saves videos when multishot capture is enabled and one or more multishot buffers contain unsaved videos.
+      // :return: outcome, either CAMAPI_STATUS.OKAY or CAMAPI_STATUS.INVALID_STATE
+      string url = "/save";
+
+      string jdata = api.FetchTarget(url);
+
+      return (CAMAPI_STATUS)JsonConvert.DeserializeObject(jdata, typeof(CAMAPI_STATUS));
+    }
     }
 }

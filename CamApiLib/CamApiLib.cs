@@ -24,11 +24,11 @@ namespace CamApi
     }
 
     /******************************************************************************
-      Private methods
+      Helper methods
     ******************************************************************************/
 
     // Returns data fetched from the target URL or None if HTTP returns an error trying to fetch the URL
-    private string FetchTarget(string target)
+    public string FetchTarget(string target)
     {
       string result = null;
       string url = "http://" + this.camAddr + target;
@@ -57,7 +57,7 @@ namespace CamApi
     }
 
     // Accepts dictionary to be posted to uri.
-    private string PostTarget(string target, CamDictionary data)
+    public string PostTarget(string target, CamDictionary data)
     {
       string result = null;
       string url = "http://" + this.camAddr + target;
@@ -119,27 +119,6 @@ namespace CamApi
       var state = (CAMERA_STATE)camStatus["state"];
 
       return (state == desiredState);
-    }
-
-    public void DeleteAllFavorites()
-    {
-      var ids = GetFavoriteIds();
-
-      foreach (var id in ids)
-      {
-        var result = DeleteFavorite(id);
-
-        Console.WriteLine($"result after delete: {result}");
-      }
-    }
-
-    public CAMAPI_STATUS DeleteFavorite(string id)
-    {
-      // Deletes a previously saved favorite using id to identify which favorite to delete
-      // returns: CAMAPI status
-      string jdata = FetchTarget($"/delete_favorite?id={id}");
-
-      return (CAMAPI_STATUS)JsonConvert.DeserializeObject(jdata, typeof(CAMAPI_STATUS));
     }
 
     public void DisplayRemoteFile(string remoteFQN)
@@ -337,7 +316,7 @@ namespace CamApi
     }
 
     /******************************************************************************
-            Public API methods
+        API methods
     ******************************************************************************/
     public CAMAPI_STATUS Cancel() // API
     {
@@ -503,46 +482,6 @@ namespace CamApi
       if (baseFilename != null) url += $"?base_filename={baseFilename}";
 
       string jdata = FetchTarget(url);
-
-      return (CAMAPI_STATUS)JsonConvert.DeserializeObject(jdata, typeof(CAMAPI_STATUS));
-    }
-
-    /******************************************************************************
-        Not part of API
-    ******************************************************************************/
-
-    public CamDictionary GetFavorite(string id)
-    {
-      // returns: dictionary containing previously saved favorite settings with identifier id.
-      string jdata = FetchTarget($"/get_favorite?id={id}");
-
-      return (CamDictionary)JsonConvert.DeserializeObject(jdata, typeof(CamDictionary));
-    }
-
-    public List<string> GetFavoriteIds()
-    {
-      // returns: list of saved favorite setting identifiers, will be an empty list if no settings have been saved.
-      var jdata = FetchTarget("/get_favorite_ids");
-
-      return (List<string>)JsonConvert.DeserializeObject(jdata, typeof(List<string>));
-    }
-
-    public CAMAPI_STATUS Save()
-    {
-      // Saves videos when multishot capture is enabled and one or more multishot buffers contain unsaved videos.
-      // :return: outcome, either CAMAPI_STATUS.OKAY or CAMAPI_STATUS.INVALID_STATE
-      string url = "/save";
-
-      string jdata = FetchTarget(url);
-
-      return (CAMAPI_STATUS)JsonConvert.DeserializeObject(jdata, typeof(CAMAPI_STATUS));
-    }
-
-    public CAMAPI_STATUS SaveFavorite(CamDictionary settings)
-    {
-      // Save a set of camera settings.  The supplied settings must have an id key set to a valid value.
-      // returns: CAMAPI_STATUS.OKAY, CAMAPI_STATUS.INVALID_PARAMETER, or CAMAPI_STATUS.STORAGE_ERROR
-      string jdata = PostTarget("/save_favorite", settings);
 
       return (CAMAPI_STATUS)JsonConvert.DeserializeObject(jdata, typeof(CAMAPI_STATUS));
     }
