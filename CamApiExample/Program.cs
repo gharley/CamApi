@@ -30,40 +30,54 @@ namespace CamApiExample
                          item => item.Key, item => item.Value);
         }
 
-        private static Boolean GetConfiguration(string[] args){
+        private static Boolean GetConfiguration(string[] args)
+        {
             var builder = new ConfigurationBuilder();
 
             builder.AddInMemoryCollection(validArgs).AddCommandLine(args, GetSwitchMappings());
-            
-            try{
+
+            try
+            {
                 config = builder.Build();
                 return true;
-            }catch(Exception){
+            }
+            catch (Exception)
+            {
                 Usage();
                 return false;
             }
         }
 
-        private static void Usage(){
+        private static void Usage()
+        {
             Console.WriteLine("Usage: CamApiExample [options]");
             Console.WriteLine("  options:");
             Console.WriteLine("    -a --Address           Host name or IP # of camera (default 10.11.12.13");
             Console.WriteLine("    -f --FavoritesTest     1 to run favorites tests (deletes all saved favorites)");
             Console.WriteLine("    -c --CaptureTest       1 to run capture tests (time consuming, writes to storage)");
             Console.WriteLine("    -m --MultiCaptureTest  1 to run multi-capture tests (time consuming, writes to storage)");
+            Console.WriteLine("    -h --Help              1 to display this message");
             Console.WriteLine("");
         }
 
         static void Main(string[] args)
         {
-            if( GetConfiguration(args) && config["Help"] == "1"){
-                Usage();
-                return;
+            if (GetConfiguration(args))
+            {
+                try
+                {
+                    if (config["Help"] == "1")
+                    {
+                        Usage();
+                        return;
+                    }
+
+                    var camExample = new CamApiExample(config);
+
+                    camExample.TestCameraFunctionality();
+                }
+                catch (Exception) { Usage(); return; }
             }
-
-            var camExample = new CamApiExample(config);
-
-            camExample.TestCameraFunctionality();
         }
     }
 }
