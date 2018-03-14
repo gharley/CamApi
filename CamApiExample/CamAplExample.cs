@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
 using System.Threading;
+using Microsoft.Extensions.Configuration;
 
 using CamApi;
 using CamApiExtensions;
@@ -10,10 +11,17 @@ namespace CamApiExample
     public class CamApiExample
     {
         private CamApiLib api;
+        private bool DoCaptureTest;
+        private bool DoFavoritesTest;
+        private bool DoMultiCaptureTest;
 
-        public CamApiExample(string address, bool debug = false)
+        public CamApiExample(IConfiguration configuration)
         {
-            api = new CamApiLib(address, debug);
+            DoCaptureTest = configuration["CaptureTest"] == "1";
+            DoFavoritesTest = configuration["FavoritesTest"] == "1";
+            DoMultiCaptureTest = configuration["MultiCaptureTest"] == "1";
+
+            api = new CamApiLib(configuration["Address"], configuration["Debug"] == "1");
         }
 
         public void TestCameraFunctionality()
@@ -24,90 +32,98 @@ namespace CamApiExample
 
                 Console.WriteLine($"Camera state {camStatus["state"]}, level {camStatus["level"]}, flags {camStatus["flags"]}");
 
-                Console.WriteLine($"Camera extended status - state {camStatus["state"]}, level {camStatus["level"]}, flags {camStatus["flags"]}, IS temp (C) {camStatus["is_temp"]}, FPGA temp (C) {camStatus["fpga_temp"]}");
+                Console.WriteLine($"\nCamera extended status - state {camStatus["state"]}, level {camStatus["level"]}, flags {camStatus["flags"]}, IS temp (C) {camStatus["is_temp"]}, FPGA temp (C) {camStatus["fpga_temp"]}");
 
-                Console.WriteLine($"Status string: {api.GetStatusString()}");
+                Console.WriteLine($"\nStatus string: {api.GetStatusString()}");
 
-                Console.WriteLine($"Directory path to active storage device: {api.GetStorageDir()}");
+                Console.WriteLine($"\nDirectory path to active storage device: {api.GetStorageDir()}");
 
-                // var storageInfo = api.GetStorageInfo();
-                // Console.WriteLine($"Storage information: {storageInfo["available_space"]} / " +
-                //     $"{storageInfo["storage_size"]} bytes, mount point: {storageInfo["mount_point"]}");
+                var storageInfo = api.GetStorageInfo();
+                Console.WriteLine($"\nStorage information: {storageInfo["available_space"]} / " +
+                    $"{storageInfo["storage_size"]} bytes, mount point: {storageInfo["mount_point"]}");
 
-                // Console.WriteLine("Camera information:");
-                // Console.Write(api.GetInfoString("    "));
+                Console.WriteLine("\nCamera information:");
+                Console.Write(api.GetInfoString("    "));
 
-                // var settings = api.GetSavedSettins();
+                var settings = api.GetSavedSettings();
 
-                // Console.WriteLine("Saved camera settings:");
-                // api.PrintSettings(settings, "requested_", "    ");
+                Console.WriteLine("\nSaved camera settings:");
+                api.PrintSettings(settings, "requested_", "    ");
 
-                // settings = api.GetCurrentSettings();
+                settings = api.GetCurrentSettings();
 
-                // Console.WriteLine("Current requested camera settings:");
-                // api.PrintSettings(settings, "requested_", "    ");
+                Console.WriteLine("\nCurrent requested camera settings:");
+                api.PrintSettings(settings, "requested_", "    ");
 
-                // Console.WriteLine("Current allowed camera settings:");
-                // api.PrintSettings(settings, "", "    ");
+                Console.WriteLine("\nCurrent allowed camera settings:");
+                api.PrintSettings(settings, "", "    ");
 
-                // var requestedSettings = new CamDictionary(){
-                //     {"requested_iso", null},
-                //     {"requested_exposure", 1/500.0},
-                //     {"requested_frame_rate", 60},
-                //     {"requested_horizontal", 640},
-                //     {"requested_vertical", 480},
-                //     {"requested_subsample", 1},
-                //     {"requested_duration", 10},
-                //     {"requested_pretrigger", 50},
-                //     {"requested_multishot_count", 1}
-                // };
+                var requestedSettings = new CamDictionary(){
+                    {"requested_iso", null},
+                    {"requested_exposure", 1/500.0},
+                    {"requested_frame_rate", 60},
+                    {"requested_horizontal", 640},
+                    {"requested_vertical", 480},
+                    {"requested_subsample", 1},
+                    {"requested_duration", 10},
+                    {"requested_pretrigger", 50},
+                    {"requested_multishot_count", 1}
+                };
 
-                // settings = api.ConfigureCamera(requestedSettings);
+                settings = api.ConfigureCamera(requestedSettings);
 
-                // Console.WriteLine("Requested camera settings:");
-                // api.PrintSettings(settings, "requested_", "    ");
+                Console.WriteLine("\nRequested camera settings:");
+                api.PrintSettings(settings, "requested_", "    ");
 
-                // Console.WriteLine("Allowed camera settings:");
-                // api.PrintSettings(settings, "", "    ");
+                Console.WriteLine("\nAllowed camera settings:");
+                api.PrintSettings(settings, "", "    ");
 
-                // var favoritesTests = new FavoritesTests(api);
-                // favoritesTests.Run();
-
-                // var captureTests = new CaptureTests(api);
-
-                // captureTests.RunCaptureCancelPostFill(settings);
-                // captureTests.RunCaptureSaveStop(settings);
-                // captureTests.RunCaptureVideo(settings, "Last saved file: {0}");
-
-                // requestedSettings["duration"] = 1;
-                // settings = api.ConfigureCamera(requestedSettings);
-
-                // captureTests.RunCaptureVideo(settings, "Last saved file - should be '/tmp/hcamapi_tmp_test': {0}", "/tmp/hcamapi_tmp_test");
-                // captureTests.RunCaptureVideo(settings, "Last saved file - should be 'hcamapi_test': {0}", "hcamapi_test");
-
-                // var multishotCaptureTests = new MultiCaptureTests(api);
-
-                // multishotCaptureTests.Run();
-                // multishotCaptureTests.Run(true);
-                // multishotCaptureTests.Run(TestCancellingPostTriggerFill: true);
-
-                Console.WriteLine("Listing files in active storage video directory");
-
-                var fileList = api.FetchRemoteDirectoryListing();
-
-                foreach (var file in fileList)
+                if (DoFavoritesTest)
                 {
-                    Console.WriteLine($"    {file}");
+                    var favoritesTests = new FavoritesTests(api);
+                    favoritesTests.Run();
                 }
- 
-                long epoch = api.SyncTime();
 
-                Console.WriteLine($"Camera hardware real time clock (epoch {epoch}): {epoch.FromUnixTime()} UTC");
+                if (DoCaptureTest)
+                {
+                    var captureTests = new CaptureTests(api);
 
-                string lastVideoFilename = api.GetLastSavedFilename();
+                    captureTests.RunCaptureCancelPostFill(settings);
+                    captureTests.RunCaptureSaveStop(settings);
+                    captureTests.RunCaptureVideo(settings, "Last saved file: {0}");
 
-                api.DisplayRemoteFile($"{lastVideoFilename.Substring(1, lastVideoFilename.Length - 6)}.txt");
-           }
+                    requestedSettings["duration"] = 1;
+                    settings = api.ConfigureCamera(requestedSettings);
+
+                    captureTests.RunCaptureVideo(settings, "Last saved file - should be '/tmp/hcamapi_tmp_test': {0}", "/tmp/hcamapi_tmp_test");
+                    captureTests.RunCaptureVideo(settings, "Last saved file - should be 'hcamapi_test': {0}", "hcamapi_test");
+                }
+
+                if (DoMultiCaptureTest)
+                {
+                    var multishotCaptureTests = new MultiCaptureTests(api);
+
+                    multishotCaptureTests.Run();
+                    multishotCaptureTests.Run(true);
+                    multishotCaptureTests.Run(TestCancellingPostTriggerFill: true);
+                }
+
+                if (DoCaptureTest || DoMultiCaptureTest)
+                {
+                    Console.WriteLine("\nListing files in active storage video directory");
+
+                    var fileList = api.FetchRemoteDirectoryListing();
+
+                    foreach (var file in fileList)
+                    {
+                        Console.WriteLine($"    {file}");
+                    }
+
+                    string lastVideoFilename = api.GetLastSavedFilename();
+
+                    api.DisplayRemoteFile($"{lastVideoFilename.Substring(1, lastVideoFilename.Length - 6)}.txt");
+                }
+            }
             catch (Exception ex)
             {
                 Console.WriteLine($"Error: {ex.Message}");

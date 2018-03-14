@@ -54,8 +54,9 @@ namespace CamApiExample
 
         public void Run()
         {
+            Console.WriteLine($"\nDeleting all favorites");
             DeleteAllFavorites();
-            Console.WriteLine($"Number of favorite IDs (should be 0): {GetFavoriteIds().Count}");
+            Console.WriteLine($"\nNumber of favorite IDs (should be 0): {GetFavoriteIds().Count}");
 
             var settings = api.GetCurrentSettings();
 
@@ -64,7 +65,7 @@ namespace CamApiExample
             settings["notes"] = "Favorite settings stored in ID slot 5";
 
             SaveFavorite(settings);
-            Console.WriteLine("Saved settings in ID slot 5");
+            Console.WriteLine("\nSaved settings in ID slot 5");
 
             settings = api.GetCurrentSettings();
 
@@ -73,19 +74,19 @@ namespace CamApiExample
             settings["notes"] = "Favorite settings stored in ID slot 3";
 
             SaveFavorite(settings);
-            Console.WriteLine("Saved settings in ID slot 3");
+            Console.WriteLine("\nSaved settings in ID slot 3");
 
-            Console.WriteLine($"Saved favorite ID list: {string.Join(", ", GetFavoriteIds())}");
+            Console.WriteLine($"\nSaved favorite ID list: {string.Join(", ", GetFavoriteIds())}");
 
             settings = GetFavorite("5");
             var allowedSettings = api.ConfigureCamera(settings);
 
             api.Run(allowedSettings);
-            Console.WriteLine("Retreived favorite settings 5 and configured the camera using those settings");
+            Console.WriteLine("\nRetreived favorite settings 5 and configured the camera using those settings");
 
             DeleteFavorite("3");
-            Console.WriteLine("Deleted previously save favorite in ID slot 3");
-            Console.WriteLine($"Saved favorite ID list: {string.Join(", ", GetFavoriteIds())}");
+            Console.WriteLine("\nDeleted previously save favorite in ID slot 3");
+            Console.WriteLine($"\nSaved favorite ID list: {string.Join(", ", GetFavoriteIds())}");
         }
 
         public CAMAPI_STATUS SaveFavorite(CamDictionary settings)

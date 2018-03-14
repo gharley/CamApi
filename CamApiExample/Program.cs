@@ -11,7 +11,11 @@ namespace CamApiExample
         // Valid command line args
         private static IReadOnlyDictionary<string, string> validArgs = new Dictionary<string, string>(){
             {"Address", "10.11.12.13"},
-            {"Debug", "0"}
+            {"Debug", "0"},
+            {"CaptureTest", "0"},
+            {"FavoritesTest", "0"},
+            {"MultiCaptureTest", "0"},
+            {"Help", "0"}
         };
 
         private static IConfiguration config { get; set; }
@@ -41,14 +45,23 @@ namespace CamApiExample
         }
 
         private static void Usage(){
-            Console.WriteLine("Usage:");
+            Console.WriteLine("Usage: CamApiExample [options]");
+            Console.WriteLine("  options:");
+            Console.WriteLine("    -a --Address           Host name or IP # of camera (default 10.11.12.13");
+            Console.WriteLine("    -f --FavoritesTest     1 to run favorites tests (deletes all saved favorites)");
+            Console.WriteLine("    -c --CaptureTest       1 to run capture tests (time consuming, writes to storage)");
+            Console.WriteLine("    -m --MultiCaptureTest  1 to run multi-capture tests (time consuming, writes to storage)");
+            Console.WriteLine("");
         }
 
         static void Main(string[] args)
         {
-            if( !GetConfiguration(args) ) return;
+            if( GetConfiguration(args) && config["Help"] == "1"){
+                Usage();
+                return;
+            }
 
-            var camExample = new CamApiExample(config["Address"], config["debug"] == "1");
+            var camExample = new CamApiExample(config);
 
             camExample.TestCameraFunctionality();
         }

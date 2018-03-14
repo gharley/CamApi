@@ -18,7 +18,7 @@ namespace CamApiExample
         public void RunCaptureCancelPostFill(CamDictionary allowedSettings)
         {
             // Example showing full pre-trigger buffer fill, trigger, cancel while post-trigger buffer is filling
-            this.RunCamera(api, allowedSettings, "Fill pre-trigger buffer, trigger, cancel while post-trigger buffer is filling");
+            this.RunCamera(api, allowedSettings, "\nFill pre-trigger buffer, trigger, cancel while post-trigger buffer is filling");
 
             api.WaitForTransition("Waiting for pre-trigger buffer to fill", CAMERA_STATE.RUNNING, 10);
             api.ExpectState(CAMERA_STATE.RUNNING_PRETRIGGER_FULL);
@@ -37,7 +37,7 @@ namespace CamApiExample
         public void RunCaptureSaveStop(CamDictionary allowedSettings)
         {
             // Example showing partial pre-trigger buffer fill, trigger, save video, then truncate save leaving playable video file
-            this.RunCamera(api, allowedSettings, "Partial pre-trigger buffer fill, trigger, start video save, then truncate save leaving playable video file");
+            this.RunCamera(api, allowedSettings, "\nPartial pre-trigger buffer fill, trigger, start video save, then truncate save leaving playable video file");
 
             api.WaitForTransition("    Letting pre-trigger buffer partially fill", CAMERA_STATE.RUNNING, 10);
             Thread.Sleep(4000);
@@ -64,7 +64,7 @@ namespace CamApiExample
         public void RunCaptureVideo(CamDictionary allowedSettings, string message, string baseFilename = null)
         {
             // Example showing full pre-trigger buffer fill, trigger, save video capture process
-            this.RunCamera(api, allowedSettings, "Partial pre-trigger buffer fill, trigger, save video capture process");
+            this.RunCamera(api, allowedSettings, "\nPartial pre-trigger buffer fill, trigger, save video capture process");
 
             api.WaitForTransition("    Waiting for pre-trigger buffer to fill", CAMERA_STATE.RUNNING, 10);
             api.ExpectState(CAMERA_STATE.RUNNING_PRETRIGGER_FULL);

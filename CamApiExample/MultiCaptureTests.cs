@@ -130,15 +130,15 @@ namespace CamApiExample
             if (TestDiscardingUnsavedVideos)
             {
                 discardAfter = 1;
-                Console.WriteLine($"Multishot capture with discard (Max multishot captures: {multiShotCount}): fill pre-trigger buffer, trigger process, discard after {discardAfter} video saved)");
+                Console.WriteLine($"\nMultishot capture with discard (Max multishot captures: {multiShotCount}): fill pre-trigger buffer, trigger process, discard after {discardAfter} video saved)");
             }
             else if (TestCancellingPostTriggerFill)
             {
                 cancelPostTriggerFillAfter = 2;
-                Console.WriteLine($"Multishot capture with cancel post trigger fill (Max multishot captures: {multiShotCount}): fill pre-trigger buffer, trigger process, cancel after {cancelPostTriggerFillAfter} videos captured");
+                Console.WriteLine($"\nMultishot capture with cancel post trigger fill (Max multishot captures: {multiShotCount}): fill pre-trigger buffer, trigger process, cancel after {cancelPostTriggerFillAfter} videos captured");
             }
             else
-                Console.WriteLine($"Multishot capture (Max multishot captures: {multiShotCount}): fill pre-trigger buffer, trigger process");
+                Console.WriteLine($"\nMultishot capture (Max multishot captures: {multiShotCount}): fill pre-trigger buffer, trigger process");
 
             this.RunCamera(api, allowedSettings, "");
 
