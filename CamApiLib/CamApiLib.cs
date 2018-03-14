@@ -222,32 +222,6 @@ namespace CamApi
       return result;
     }
 
-    private static Dictionary<string, string> infoLookup = new Dictionary<string, string>(){
-          {"sw_build_date", "Software build date"},
-          {"build_date", "Hardware build date"},
-          {"fpga_version", "FPGA version"},
-          {"model_number", "Model Number"},
-          {"serial_number", "Serial Number"},
-          {"hardware_revision", "Hardware Revision"},
-          {"hardware_configuration", "Hardware Configuration"}
-        };
-
-    public string GetInfoString(string prefix)
-    {
-      // Returns human readable text describing the camera.  Text format will change in the future.
-      var info = GetCamInfo();
-      string result = string.Join(prefix, from kv in infoLookup
-                                          where info.ContainsKey(kv.Key)
-                                          select $"{kv.Value}: {info[kv.Key]}\n");
-
-      if (info.ContainsKey("ir_filter"))
-        result += prefix + $"IR Filter: {((long)info["ir_filter"] != 0 ? "" : "not ")} installed\n";
-
-      result += $"{prefix}Ethernet MAC Address: {info["mac_addr"]}\n";
-
-      return result;
-    }
-
     private static Dictionary<CAMERA_STATE, string> TextStateLookup = new Dictionary<CAMERA_STATE, string>(){
           {CAMERA_STATE.CALIBRATING, "Calibrating"},
           {CAMERA_STATE.REVIEWING, "Reviewing"},
@@ -319,47 +293,8 @@ namespace CamApi
       return result;
     }
 
-    private void PrintSettingLine(string label, object value)
-    {
-      Console.Write(label + ": ");
-      if (value == null) Console.WriteLine("None");
-      else Console.WriteLine($"{value:g6}");
-    }
-
-    public void PrintSettings(CamDictionary settings, string keyPrefix, string prefix)
-    {
-      PrintSettingLine(prefix + "Sensitivity", settings[keyPrefix + "iso"]);
-
-      var exposure = (double)settings[keyPrefix + "exposure"];
-      if (exposure == 0) Console.WriteLine($"{prefix}Shutter: None");
-      else Console.WriteLine($"{prefix}Shutter: {1 / exposure:g6}");
-
-      PrintSettingLine(prefix + "Frame Rate", settings[keyPrefix + "frame_rate"]);
-      PrintSettingLine(prefix + "Horizontal", settings[keyPrefix + "horizontal"]);
-      PrintSettingLine(prefix + "Vertical", settings[keyPrefix + "vertical"]);
-
-      Console.Write($"{prefix}Sub-sampling: ");
-      Console.WriteLine((!settings.ContainsKey(keyPrefix + "subsample") || (long)settings[keyPrefix + "subsample"] == 0) ? "Off" : "On");
-
-      PrintSettingLine(prefix + "Duration", settings[keyPrefix + "duration"]);
-      PrintSettingLine(prefix + "Pre-trigger", settings[keyPrefix + "pretrigger"]);
-    }
-
-    public void Reboot()
-    {
-      // Software reboot the camera.
-      try
-      {
-        FetchTarget("/reboot");
-      }
-      catch (Exception)
-      {
-        // Ignore error caused by reboot
-      }
-    }
-
     private static string[] suffixes = { "bytes", "KB", "MB", "GB" };
-    
+
     private string SizeofFmt(double num)
     {
       foreach (var suffix in suffixes)
@@ -592,20 +527,6 @@ namespace CamApi
       return (List<string>)JsonConvert.DeserializeObject(jdata, typeof(List<string>));
     }
 
-    public CAMAPI_STATUS Mount(string device = null)
-    {
-      // Attempts to mount specified storage device. Use /mount?device=USB,
-      // /mount?device=SD, or /mount?device=NET to specify the device.
-      // Returns: CAMAPI_STATUS.OKAY or CAMAPI_STATUS.STORAGE_ERROR, CAMAPI_STATUS.INVALID_PARAMETER
-      string url = "/mount";
-
-      if (device != null) url += $"?device={device}";
-
-      string jdata = FetchTarget(url);
-
-      return (CAMAPI_STATUS)JsonConvert.DeserializeObject(jdata, typeof(CAMAPI_STATUS));
-    }
-
     public CAMAPI_STATUS Save()
     {
       // Saves videos when multishot capture is enabled and one or more multishot buffers contain unsaved videos.
@@ -622,36 +543,6 @@ namespace CamApi
       // Save a set of camera settings.  The supplied settings must have an id key set to a valid value.
       // returns: CAMAPI_STATUS.OKAY, CAMAPI_STATUS.INVALID_PARAMETER, or CAMAPI_STATUS.STORAGE_ERROR
       string jdata = PostTarget("/save_favorite", settings);
-
-      return (CAMAPI_STATUS)JsonConvert.DeserializeObject(jdata, typeof(CAMAPI_STATUS));
-    }
-
-    public CAMAPI_STATUS SelectiveSave(CamDictionary parameters)
-    {
-      // Save portion of video previously stored in DDR3 memory.  Captured videos in DDR3 are not modified.
-      // :param parameters['buffer_index']: which multishot buffer to save.
-      // :param parameters['start_frame']: Starting frame to save.
-      // :param parameters['end_frame']: Ending frame to save.
-      // :param parameters['filename']: Optional, specify base filename (no path, no suffix) used for saving video and metadata
-      // :return: outcome, CAMAPI_STATUS.OKAY, CAMAPI_STATUS.INVALID_STATE, CAMAPI_STATUS.INVALID_PARAMETER
-      string jdata = PostTarget("/selective_save", parameters);
-
-      return (CAMAPI_STATUS)JsonConvert.DeserializeObject(jdata, typeof(CAMAPI_STATUS));
-    }
-    
-    public CAMAPI_STATUS Unmount(string device = null)
-    {
-      // Attempts to unmount mnt_pt or selected storage device if dev is None.
-      // Use dev="USB" or dev="SD" to specify device to be unmounted. Unmounting
-      // the selected storage device causes the camera to select USB
-      // storage if possible or SD storage if USB storage is unavailable and
-      // SD storage is usable.
-      // Returns: CAMAPI_STATUS.OKAY or CAMAPI_STATUS.STORAGE_ERROR
-      string url = "/unmount";
-
-      if (device != null) url += $"?device={device}";
-
-      string jdata = FetchTarget(url);
 
       return (CAMAPI_STATUS)JsonConvert.DeserializeObject(jdata, typeof(CAMAPI_STATUS));
     }
