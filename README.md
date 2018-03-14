@@ -1,5 +1,5 @@
 # CamApi
-C# API and examples for the Edgertronic camera
+C# API and examples for the edgertronic camera
 
 Download or clone to local machine (dotnet core 2.0 must be installed)</br>
 &nbsp;&nbsp;run <code>dotnet build</code></br>
